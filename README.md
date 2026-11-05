@@ -4,6 +4,8 @@ A phone-first website for predicting the scores of each weekend's Premier League
 
 Built by Ben Farrell with Claude (Anthropic's AI assistant) in Claude Code, November 2026.
 
+**Try it:** https://benafarrell2000.github.io/Gameweek-Predictor/ (on GitHub Pages, picks and results are saved in your own browser).
+
 ## What it does
 
 The site has three screens, switched from a tab bar at the bottom.
@@ -28,7 +30,8 @@ Points don't stack, so an exact score is worth 5, not 7. Players level on points
 
 | Path | What it is |
 | --- | --- |
-| `mockup/index.html` | The whole app: HTML, CSS and JavaScript in one file, with no build step. |
+| `mockup/index.html` | The whole app: HTML, CSS and JavaScript in one file, with no build step. This is the version published on claude.ai. |
+| `index.html` | The same app as a standalone web page, served by GitHub Pages. |
 | `docs/PRD.md` | The product requirements document: goals, user stories, scoring rules, design, technical plan, risks. |
 | `CLAUDE.md.txt` | The original brief given to Claude at the start of the project. |
 | `MEMORY.md.txt` | The project log Claude kept: progress, decisions and lessons learned, session by session. |

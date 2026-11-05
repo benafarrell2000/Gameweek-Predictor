@@ -1,0 +1,56 @@
+# Football Predictor — Project Memory
+
+## Progress log
+- **2026-11-05 — Session 1:** Read CLAUDE.md. Wrote the Product Requirements Document (PRD) as a Claude Doc:
+  https://claude.ai/artifact/N8JsXUezNFSHjF6WUVBNwd
+  Next step: Ben reviews the PRD and answers the open questions, then we build a clickable mock-up.
+- **2026-11-05 — Session 1 (cont.):** Built a clickable phone-first mock-up, published as an Artifact:
+  https://claude.ai/artifact/78Z6PKycJVS7jfG67zDJoT (source: `mockup/index.html`).
+  - Three tabs: Predict (Gameweek 12 score entry, per-match lock, live match shows everyone's picks, progress bar, Save), Results (Gameweek 11 full-time scores, your pick, 5/2/0 badge, tap to see everyone's picks), Table (Season vs Gameweek toggle, exact/result columns, movement arrows, shared positions).
+  - All data is example data (8 example players, invented fixtures). Points are computed by the same 5/2/0 + tie-break rules as the PRD.
+  - Placeholder site name "Gameweek Predictor" until Ben picks one. Club crests are coloured circles with 3-letter codes (no official badges).
+  - Next step: Ben clicks through the mock-up and gives feedback, then we start the real build (Next.js + Supabase).
+- **2026-11-05 — Fixtures correction:** Ben flagged that the mock-up's fixtures were made up and wrong. Replaced the Predict screen with the **real Matchday 10 fixtures** (Ben's screenshot; home team listed first):
+  Fri 6 Nov 20:00 Everton v Coventry · Sat 7 Nov 12:30 Leeds v Spurs · 15:00 Fulham v Newcastle · 15:00 Arsenal v Hull · 17:30 Nottm Forest v Man City · Sun 8 Nov 14:00 Ipswich v Bournemouth · 14:00 Sunderland v Chelsea · 14:00 Brighton v Brentford · 14:00 Palace v Liverpool · 16:30 Man Utd v Aston Villa.
+  - Each match now locks at its real kick-off time (UK time = GMT in November) and then reveals everyone's picks. The countdown is live.
+  - Results and Table moved to Gameweek 9. They still use example scores and are labelled as examples.
+
+- **2026-11-05 — Real saving + live results (Version 3):** Ben asked for no pre-filled scores, for picks that he enters to be saved, for results to appear as the week goes on, and for "Ben's mates" to be removed. He accepts that for now only he will use it (friends won't be signed up yet).
+  - Picks start empty. **Save picks** writes them to the artifact's database (`picks/<user id>` → `{gw10: {"EVE-COV": "2-1", ...}}`). If the page is opened outside claude.ai / signed out, it falls back to saving in that browser only (header shows "This device" instead of "Synced").
+  - Locked matches keep the pick saved before kick-off; saving after kick-off can't change them.
+  - **Results tab** = Gameweek 10 as it happens: each match shows Not started → In play → Awaiting result → Full time. Ben (as owner/editor) types the full-time score on the Results tab. It's saved to `results/gw10` → `{"EVE-COV": "1-0", ...}`, and points (5/2/0) plus the table update straight away. Claude can also write results into `results/gw10` with the ArtifactData tool.
+  - **Table** = everyone with saved picks, ranked by points → exact → results (shared position "="). For now that's just Ben.
+  - DB rules: anyone can read picks; each person writes only their own `picks/<id>`, and the owner can fix any of them. Results can only be written by editors and the owner. Friends would need Contributor access later.
+  - Header subtitle is now "2026/27 season".
+  - Known limit: picks are readable by other players before kick-off (only matters once friends join). The kick-off lock happens in the page, not on the server.
+
+- **2026-11-05 — Automatic results scheduled:** Ben asked Claude to add the results. Four one-time scheduled tasks (Claude desktop app → Scheduled) look up official full-time scores and write any missing ones to `results/gw10`. They never overwrite a score Ben has already entered, and each run logs a line here:
+  - `gw10-results-fri`: Fri 6 Nov 22:15 · `gw10-results-sat`: Sat 7 Nov 19:45 · `gw10-results-sun`: Sun 8 Nov 18:45 · `gw10-results-catchup`: Mon 9 Nov 09:00
+  - They only run while the Claude app is open. If it's closed, they run the next time it opens. Saved in Auto mode.
+  - Next: Gameweek 11 fixtures and results tasks will need setting up after GW10 (fixtures are currently hard-coded in the page).
+
+- **2026-11-05 — Prepared for GitHub (AI homework):** Ben needs the code on GitHub for his AI homework. Git and the GitHub CLI aren't installed on this laptop, so the plan is to upload through the github.com website. Added `README.md` (what the project is, how it works, how AI was used) and `docs/PRD.md` (exported from the Claude Doc). Ben uploads the files himself.
+
+## Learnings / takeaways (fixtures)
+- **2026/27 Premier League teams:** Arsenal, Aston Villa, Bournemouth, Brentford, Brighton, Chelsea, Coventry, Crystal Palace, Everton, Fulham, Hull, Ipswich, Leeds, Liverpool, Man City, Man Utd, Newcastle, Nottm Forest, Sunderland, Spurs. West Ham, Wolves and Burnley are NOT in the league this season.
+- Don't invent fixtures or results. Use real data from Ben or from the data feed, or label anything else clearly as an example.
+
+## Key decisions (from the PRD, pending Ben's review)
+- **Scoring:** exact score = 5 pts, correct result (H/D/A) = 2 pts, otherwise 0. Points don't stack (exact = 5, not 7).
+- **Scoring edge cases:** no pick = 0; full-time score (90 + stoppage) counts; postponed games carry picks over; corrected results recalculate.
+- **Tie-breaks:** most exact scores, then most correct results, then shared position.
+- **Picks lock** per match at its own kick-off; everyone's picks become visible after kick-off.
+- **Scope v1:** one private group, invite link, Premier League only, mobile-friendly website (no app), no betting/money.
+- **Theme:** Premier League colours (purple #37003C, pink #E90052, green #00FF85, cyan #04F5FF, white — approximate). Use colours only, not the PL logo/name, to avoid trademark issues.
+- **Proposed stack:** Next.js on Vercel + Supabase (sign-in + database) + football-data.org for fixtures/scores, all free tiers. A sync job runs every ~15 min on matchdays.
+
+## Open questions (for Ben)
+- Site name?
+- How many friends will play?
+- Launch mid-season (Nov 2026) or wait for the 2027/28 season?
+- Reminders: email, WhatsApp, or none?
+- Show others' picks before kick-off, or only after (PRD default: after)?
+
+## Learnings / takeaways
+- The project files are named `CLAUDE.md.txt` and `MEMORY.md.txt` (Windows added .txt). Fine for now; renaming to `.md` would let Claude Code auto-load CLAUDE.md.
+- A PRD written first keeps scope tight: v1 is predict → lock → auto-score → leaderboard, nothing more.

@@ -1,0 +1,22 @@
+Context
+
+My name is Ben Farrell.
+I want to create a website where my and my friends can input predictions for the weekends premier league football games.
+I'd like the website to be simple to use, and have a leader board that updates based on the real life scores from the Premier League.
+The theme should be the colours of the premier league. I want an Exact score prediction to be worth 5 points (for example, a 2-1 home win prediction, that has a 2-1 home win outcome, would be 5 points)
+I want a correct result to be worth 2 points (for example a 3-1 home win outcome with a 2-1 home win prediction would be worth 2 points)
+I want them to get no points when they don't predict the exact score, or win/draw/loss result.
+Create a product requirement document (PRD) for this project.
+
+
+
+Instructions
+
+In this folder there is a file called MEMORY.md
+Use MEMORY.md to document everything we do in this project:
+- what we're learning
+- key takeaways
+- progress
+- and any important decisions.
+Keep MEMORY.md up to date at all times.
+Every time we start a new session, read CLAUDE.md and MEMORY.md first to get full project context.

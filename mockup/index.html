@@ -1,0 +1,706 @@
+<title>Gameweek Predictor</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: phone-first app column — purple header band, scrolling cards, fixed purple tab bar. One committed light look in league colours. */
+:root {
+  --purple: #37003C;
+  --purple-2: #4E0A56;
+  --pink: #E90052;
+  --green: #00FF85;
+  --cyan: #04F5FF;
+  --bg: #F3EFF5;
+  --card: #FFFFFF;
+  --ink: #1F0B24;
+  --muted: #6D5A72;
+  --line: #E3D8E7;
+  --zero: #EEE7F0;
+  --on-purple: #FFFFFF;
+  --on-purple-dim: rgba(255,255,255,.68);
+  --font-display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --tabbar-h: 64px;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--bg); }
+body {
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--purple);
+}
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; }
+
+.wrap {
+  max-width: 520px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+/* Header */
+.top {
+  background: var(--purple); color: var(--on-purple);
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+}
+.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 14px; }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.brand-mark {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: conic-gradient(var(--green) 0 25%, var(--cyan) 0 50%, var(--pink) 0 75%, var(--on-purple) 0);
+  display: grid; place-items: center; flex: none;
+}
+.brand-mark::after { content: ""; width: 20px; height: 20px; border-radius: 50%; background: var(--purple); }
+.brand-name { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: .01em; line-height: 1; }
+.brand-sub { font-size: 12px; color: var(--on-purple-dim); }
+.sync-tag {
+  font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+  border: 1px solid rgba(255,255,255,.35); border-radius: 999px; padding: 4px 10px; white-space: nowrap;
+}
+.sync-tag.ok::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--green); margin-right: 6px; vertical-align: 1px; }
+
+main { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px) + 24px); }
+.view { display: flex; flex-direction: column; gap: 16px; padding-block: 16px 8px; }
+
+/* Hero panels */
+.hero {
+  background: var(--purple); color: var(--on-purple);
+  border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 12px;
+  background-image: radial-gradient(120% 140% at 100% 0%, var(--purple-2) 0%, var(--purple) 60%);
+}
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--on-purple-dim); }
+.hero h1 { margin: 0; font-family: var(--font-display); font-size: 34px; line-height: 1; font-weight: 700; }
+.countdown { font-size: 14px; color: var(--on-purple-dim); }
+.countdown strong { color: var(--green); font-weight: 600; font-variant-numeric: tabular-nums; }
+.progress { display: flex; flex-direction: column; gap: 6px; }
+.progress-label { display: flex; justify-content: space-between; font-size: 13px; color: var(--on-purple-dim); }
+.progress-label b { color: var(--on-purple); font-variant-numeric: tabular-nums; }
+.bar { height: 8px; border-radius: 99px; background: rgba(255,255,255,.16); overflow: hidden; }
+.bar > i { display: block; height: 100%; width: 0; background: var(--green); border-radius: 99px; transition: width .25s ease; }
+
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stat { background: rgba(255,255,255,.08); border-radius: 10px; padding: 10px; }
+.stat b { display: block; font-family: var(--font-display); font-size: 26px; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 12px; color: var(--on-purple-dim); }
+
+.notice { font-size: 13px; color: var(--muted); background: var(--card); border: 1px dashed var(--line); border-radius: 10px; padding: 10px 12px; margin: 0; }
+
+/* Day groups + fixture cards */
+.day { display: flex; flex-direction: column; gap: 8px; }
+.day-title { margin: 6px 2px 0; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.card { background: var(--card); border-radius: 12px; border: 1px solid var(--line); }
+
+.fixture { padding: 12px 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+.fixture-meta { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--muted); gap: 8px; }
+.pill { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; border-radius: 99px; padding: 3px 8px; white-space: nowrap; }
+.pill-open { background: var(--zero); color: var(--muted); }
+.pill-need { background: var(--pink); color: #fff; }
+.pill-ft { background: var(--purple); color: #fff; }
+.pill-live { background: var(--purple); color: var(--green); }
+.pill-live::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--green); margin-right: 5px; vertical-align: 1px; }
+
+.matchup { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; }
+.team { display: flex; align-items: center; gap: 8px; min-width: 0; font-weight: 600; }
+.team.away { flex-direction: row-reverse; text-align: right; }
+.team-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.crest {
+  width: 30px; height: 30px; border-radius: 50%; flex: none;
+  display: grid; place-items: center;
+  font-size: 9.5px; font-weight: 700; letter-spacing: .03em;
+  box-shadow: inset 0 0 0 2px rgba(0,0,0,.08);
+}
+.score-entry { display: flex; align-items: center; gap: 6px; }
+.score-entry input {
+  width: 46px; height: 52px; text-align: center;
+  font-family: var(--font-display); font-weight: 700; font-size: 30px; color: var(--purple);
+  border: 2px solid var(--line); border-radius: 10px; background: var(--bg);
+}
+.score-entry input:focus { outline: none; border-color: var(--pink); background: #fff; }
+.score-entry input::placeholder { color: #C8BACD; }
+.score-entry.small input { width: 40px; height: 42px; font-size: 24px; }
+.dash { font-family: var(--font-display); font-size: 22px; color: var(--muted); }
+.score-locked { font-family: var(--font-display); font-weight: 700; font-size: 30px; color: var(--purple); font-variant-numeric: tabular-nums; min-width: 110px; text-align: center; }
+.score-locked small { display: block; font-family: var(--font-body); font-size: 10.5px; font-weight: 700; letter-spacing: .08em; color: var(--muted); text-transform: uppercase; }
+
+.reveal { border-top: 1px dashed var(--line); padding-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.reveal-head { font-size: 13px; color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: 13px; background: var(--bg); border-radius: 99px; padding: 4px 10px; }
+.chip b { font-variant-numeric: tabular-nums; }
+
+.save-bar {
+  position: sticky; bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px) + 12px);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 10px 10px 10px 16px;
+  box-shadow: 0 8px 24px rgba(55,0,60,.14);
+}
+.save-bar span { font-size: 13px; color: var(--muted); }
+.btn {
+  border: 0; border-radius: 10px; padding: 12px 20px; cursor: pointer;
+  background: var(--pink); color: #fff; font-weight: 700; font-size: 15px;
+}
+.btn:disabled { background: var(--zero); color: var(--muted); cursor: default; }
+.btn-sm { padding: 9px 14px; font-size: 14px; }
+.btn-ghost { background: transparent; color: var(--pink); padding: 4px 0; font-weight: 600; font-size: 13px; border: 0; cursor: pointer; }
+
+/* Results */
+.result { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.ft { font-family: var(--font-display); font-weight: 700; font-size: 30px; color: var(--purple); font-variant-numeric: tabular-nums; text-align: center; min-width: 76px; line-height: 1; }
+.ft small { display: block; font-family: var(--font-body); font-size: 10.5px; font-weight: 700; letter-spacing: .08em; color: var(--muted); margin-top: 4px; }
+.ft.pending { color: #C8BACD; }
+.mine { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--muted); }
+.mine b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.pts { display: inline-grid; place-items: center; min-width: 46px; height: 28px; padding: 0 8px; border-radius: 8px; font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--purple); font-variant-numeric: tabular-nums; font-style: normal; }
+.pts-5 { background: var(--green); }
+.pts-2 { background: var(--cyan); }
+.pts-0 { background: var(--zero); color: var(--muted); }
+.entry { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; border-top: 1px dashed var(--line); padding-top: 10px; font-size: 13px; color: var(--muted); }
+
+.key { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--muted); padding: 0 2px; }
+.key span { display: inline-flex; align-items: center; gap: 6px; }
+.key .pts { min-width: 26px; height: 20px; font-size: 13px; }
+
+/* Table */
+.table-card { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); text-align: right; padding: 12px 12px 8px; }
+th:nth-child(2), td:nth-child(2) { text-align: left; }
+td { padding: 11px 12px; text-align: right; border-top: 1px solid var(--line); white-space: nowrap; }
+td.pos { width: 52px; text-align: left; font-family: var(--font-display); font-weight: 700; font-size: 18px; color: var(--purple); }
+td.player { font-weight: 600; width: 100%; }
+td.total { font-family: var(--font-display); font-weight: 700; font-size: 20px; color: var(--purple); }
+tr.you td { background: #FBE6EF; }
+.you-pill { margin-left: 8px; font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #fff; background: var(--pink); border-radius: 99px; padding: 2px 7px; vertical-align: 2px; }
+.empty { padding: 28px 16px; text-align: center; color: var(--muted); font-size: 14px; }
+.note { font-size: 12.5px; color: var(--muted); padding: 0 2px; margin: 0; max-width: 60ch; }
+
+/* Tab bar */
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 25;
+  background: var(--purple);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px);
+}
+.tabbar .inner { max-width: 520px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); height: var(--tabbar-h); }
+.tabbar a {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  color: var(--on-purple-dim); text-decoration: none; font-size: 12px; font-weight: 600; position: relative;
+}
+.tabbar a svg { width: 22px; height: 22px; }
+.tabbar a[aria-current="page"] { color: var(--on-purple); }
+.tabbar a[aria-current="page"]::before { content: ""; position: absolute; top: 0; left: 28%; right: 28%; height: 3px; border-radius: 0 0 3px 3px; background: var(--pink); }
+
+.toast {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px) + 84px);
+  background: var(--purple); color: #fff; font-weight: 600; font-size: 14px;
+  padding: 10px 16px; border-radius: 10px; z-index: 40; box-shadow: 0 8px 24px rgba(0,0,0,.2);
+  max-width: calc(100% - 32px); text-align: center;
+}
+.toast b { color: var(--green); }
+
+@media (max-width: 380px) {
+  .team-name { font-size: 13px; }
+  .score-entry input { width: 40px; height: 48px; font-size: 26px; }
+  .crest { width: 26px; height: 26px; font-size: 8.5px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true"></div>
+      <div>
+        <div class="brand-name">Gameweek Predictor</div>
+        <div class="brand-sub">2026/27 season</div>
+      </div>
+    </div>
+    <span class="sync-tag" id="sync-tag">Connecting…</span>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="view" id="view-predict" aria-labelledby="h-predict"></section>
+  <section class="view" id="view-results" aria-labelledby="h-results" hidden></section>
+  <section class="view" id="view-table" aria-labelledby="h-table" hidden></section>
+</main>
+
+<nav class="tabbar" aria-label="Main">
+  <div class="inner">
+    <a href="#predict" data-tab="predict">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg>
+      Predict
+    </a>
+    <a href="#results" data-tab="results">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg>
+      Results
+    </a>
+    <a href="#table" data-tab="table">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v4a5 5 0 0 1-10 0V4z"/><path d="M7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3"/><path d="M12 13v4M8 20h8"/></svg>
+      Table
+    </a>
+  </div>
+</nav>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- Fixtures ----------
+  const TEAMS = {
+    ARS: ["Arsenal", "#EF0107", "#fff"], AVL: ["Aston Villa", "#670E36", "#fff"], BOU: ["Bournemouth", "#DA291C", "#fff"],
+    BRE: ["Brentford", "#E30613", "#fff"], BHA: ["Brighton", "#0057B8", "#fff"], CHE: ["Chelsea", "#034694", "#fff"],
+    COV: ["Coventry", "#59CBE8", "#0A2240"], CRY: ["Palace", "#1B458F", "#fff"], EVE: ["Everton", "#003399", "#fff"],
+    FUL: ["Fulham", "#1A1A1A", "#fff"], HUL: ["Hull", "#F5A12D", "#1A1A1A"], IPS: ["Ipswich Town", "#0044A9", "#fff"],
+    LEE: ["Leeds", "#FFCD00", "#1D428A"], LIV: ["Liverpool", "#C8102E", "#fff"], MCI: ["Man City", "#6CABDD", "#1C2C5B"],
+    MUN: ["Man Utd", "#DA291C", "#FBE122"], NEW: ["Newcastle", "#241F20", "#fff"], NFO: ["Nottm Forest", "#DD0000", "#fff"],
+    SUN: ["Sunderland", "#EB172B", "#fff"], TOT: ["Spurs", "#132257", "#fff"]
+  };
+
+  // Matchday 10, home team first. UK times; November is GMT, so UTC = UK time.
+  const GW = { key: "gw10", label: "Gameweek 10" };
+  const FIXTURES = [
+    ["Friday 6 November", "20:00", "2026-11-06T20:00:00Z", "EVE", "COV"],
+    ["Saturday 7 November", "12:30", "2026-11-07T12:30:00Z", "LEE", "TOT"],
+    ["Saturday 7 November", "15:00", "2026-11-07T15:00:00Z", "FUL", "NEW"],
+    ["Saturday 7 November", "15:00", "2026-11-07T15:00:00Z", "ARS", "HUL"],
+    ["Saturday 7 November", "17:30", "2026-11-07T17:30:00Z", "NFO", "MCI"],
+    ["Sunday 8 November", "14:00", "2026-11-08T14:00:00Z", "IPS", "BOU"],
+    ["Sunday 8 November", "14:00", "2026-11-08T14:00:00Z", "SUN", "CHE"],
+    ["Sunday 8 November", "14:00", "2026-11-08T14:00:00Z", "BHA", "BRE"],
+    ["Sunday 8 November", "14:00", "2026-11-08T14:00:00Z", "CRY", "LIV"],
+    ["Sunday 8 November", "16:30", "2026-11-08T16:30:00Z", "MUN", "AVL"]
+  ].map(([day, time, ko, h, a]) => ({ id: h + "-" + a, day, time, ko, h, a }));
+
+  // ---------- Scoring: 5 exact, 2 correct result, 0 otherwise ----------
+  const parse = s => (typeof s === "string" && /^\d-\d$/.test(s)) ? s.split("-").map(Number) : null;
+  function points(pick, actual) {
+    const p = parse(pick), a = parse(actual);
+    if (!p || !a) return 0;
+    if (p[0] === a[0] && p[1] === a[1]) return 5;
+    return Math.sign(p[0] - p[1]) === Math.sign(a[0] - a[1]) ? 2 : 0;
+  }
+  const outcome = s => { const a = parse(s); return a[0] > a[1] ? "home win" : a[0] < a[1] ? "away win" : "draw"; };
+  function why(pick, actual) {
+    if (!parse(pick)) return "No pick";
+    const pts = points(pick, actual);
+    if (pts === 5) return "Exact score";
+    if (pts === 2) return "Right result (" + outcome(actual) + ")";
+    return "Predicted " + outcome(pick);
+  }
+  function statsFor(picks) {
+    let pts = 0, exact = 0, res = 0, played = 0;
+    FIXTURES.forEach(m => {
+      if (!parse(state.results[m.id])) return;
+      played++;
+      const p = points(picks && picks[m.id], state.results[m.id]);
+      pts += p; if (p === 5) exact++; if (p === 2) res++;
+    });
+    return { pts, exact, res, played };
+  }
+  // Tie-breaks: points, then exact scores, then correct results; full ties share a position.
+  function rank(rows) {
+    rows.sort((x, y) => y.pts - x.pts || y.exact - x.exact || y.res - x.res);
+    rows.forEach((r, i) => {
+      const prev = rows[i - 1];
+      r.pos = (prev && prev.pts === r.pts && prev.exact === r.exact && prev.res === r.res) ? prev.pos : i + 1;
+    });
+    rows.forEach(r => { r.shared = rows.filter(o => o.pos === r.pos).length > 1; });
+    return rows;
+  }
+  const ordinal = n => n + ((n % 100 >= 11 && n % 100 <= 13) ? "th" : ({ 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th"));
+  const isLocked = m => Date.now() >= Date.parse(m.ko);
+  const nextMatch = () => FIXTURES.find(m => !isLocked(m));
+
+  // ---------- State ----------
+  // mode "local": saved in this browser only (outside the Claude viewer, or signed out).
+  // mode "db": saved in the artifact's database (picks/<user id>, results/<gameweek>).
+  const state = {
+    mode: "local", db: null, user: null, uid: null, canResults: true,
+    myDoc: {},        // my whole picks document
+    players: {},      // user id -> that player's picks for this gameweek
+    draft: {},        // picks being edited on the Predict screen
+    results: {},      // match id -> "h-a" full-time score
+    dirty: false, saving: false
+  };
+  const saved = () => (state.myDoc[GW.key] || {});
+
+  function local(key, val) {
+    try {
+      if (val === undefined) return JSON.parse(localStorage.getItem(key) || "null");
+      localStorage.setItem(key, JSON.stringify(val));
+    } catch (e) { return null; }
+  }
+  function loadLocal() {
+    state.myDoc = local("gwp-picks") || {};
+    state.results = (local("gwp-results") || {})[GW.key] || {};
+    state.players = Object.keys(saved()).length ? { me: saved() } : {};
+    state.draft = Object.assign({}, saved());
+  }
+
+  // ---------- Helpers ----------
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const crest = code => { const t = TEAMS[code]; return `<span class="crest" style="background:${t[1]};color:${t[2]}" aria-hidden="true">${code}</span>`; };
+  const team = (code, side) => `<div class="team ${side}">${crest(code)}<span class="team-name">${esc(TEAMS[code][0])}</span></div>`;
+  const ptsBadge = p => `<span class="pts pts-${p}">${p} pt${p === 1 ? "" : "s"}</span>`;
+  const short = m => `${TEAMS[m.h][0]} v ${TEAMS[m.a][0]}`;
+  function groupByDay(list) {
+    const out = [];
+    list.forEach(m => {
+      let g = out.find(x => x.day === m.day);
+      if (!g) { g = { day: m.day, items: [] }; out.push(g); }
+      g.items.push(m);
+    });
+    return out;
+  }
+  const scoreInputs = (idPrefix, m, value, small) => {
+    const raw = (value || "").split("-");
+    const hv = raw[0] || "", av = raw[1] || "";
+    return `<div class="score-entry${small ? " small" : ""}">
+      <input id="${idPrefix}-${m.id}-h" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" placeholder="–" value="${esc(hv)}" aria-label="${esc(TEAMS[m.h][0])} goals" data-side="h">
+      <span class="dash" aria-hidden="true">–</span>
+      <input id="${idPrefix}-${m.id}-a" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" placeholder="–" value="${esc(av)}" aria-label="${esc(TEAMS[m.a][0])} goals" data-side="a">
+    </div>`;
+  };
+  const readInputs = card => {
+    const h = card.querySelector('[data-side="h"]').value, a = card.querySelector('[data-side="a"]').value;
+    return (h === "" && a === "") ? "" : h + "-" + a;
+  };
+  function wireDigits(scope, onChange) {
+    scope.querySelectorAll(".score-entry input").forEach(inp => {
+      inp.addEventListener("focus", () => inp.select());
+      inp.addEventListener("input", () => {
+        inp.value = inp.value.replace(/\D/g, "").slice(-1);
+        const card = inp.closest("[data-match]");
+        if (inp.value !== "" && inp.dataset.side === "h") card.querySelector('[data-side="a"]').focus();
+        onChange(card);
+      });
+    });
+  }
+
+  let toastTimer;
+  function showToast(html) {
+    const t = document.getElementById("toast");
+    t.innerHTML = html; t.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.hidden = true; }, 2600);
+  }
+  function setSyncTag() {
+    const t = document.getElementById("sync-tag");
+    if (state.mode === "db") { t.textContent = "Synced"; t.className = "sync-tag ok"; t.title = "Picks are saved to your account"; }
+    else { t.textContent = "This device"; t.className = "sync-tag"; t.title = "Picks are saved in this browser only"; }
+  }
+
+  // ---------- Predict ----------
+  function renderPredict() {
+    const el = document.getElementById("view-predict");
+    const nxt = nextMatch();
+    let html = `
+      <div class="hero">
+        <div><div class="eyebrow">Your picks</div><h1 id="h-predict">${GW.label}</h1></div>
+        <div class="countdown">${nxt ? `Next lock in <strong id="countdown">–</strong> · ${esc(short(nxt))}, ${esc(nxt.day.slice(0, 3))} ${nxt.time}` : "Every match has kicked off"}</div>
+        <div class="progress">
+          <div class="progress-label"><span>Each match locks at its own kick-off</span><b id="picked-count"></b></div>
+          <div class="bar"><i id="picked-bar"></i></div>
+        </div>
+      </div>`;
+    if (state.mode === "local") html += `<p class="notice">Picks are saved in this browser only. Open the page from claude.ai while signed in to keep them on every device.</p>`;
+    groupByDay(FIXTURES).forEach(g => {
+      html += `<div class="day"><h2 class="day-title">${esc(g.day)}</h2>`;
+      g.items.forEach(m => {
+        if (isLocked(m)) {
+          const mine = parse(saved()[m.id]) ? saved()[m.id] : "–";
+          const others = Object.entries(state.players).filter(([id]) => id !== state.uid && id !== "me");
+          html += `
+          <div class="card fixture">
+            <div class="fixture-meta"><span>${m.time} · Picks locked</span><span class="pill pill-live">${parse(state.results[m.id]) ? "Full time" : "Kicked off"}</span></div>
+            <div class="matchup">${team(m.h, "home")}<div class="score-locked">${esc(mine)}<small>Your pick</small></div>${team(m.a, "away")}</div>
+            ${others.length ? `<div class="reveal"><div class="reveal-head">Everyone's picks</div><div class="chips" data-chips="${m.id}">${others.map(([id, p]) => `<span class="chip" data-uid="${esc(id)}"><span class="nm">Player</span> <b>${esc(parse(p[m.id]) ? p[m.id] : "–")}</b></span>`).join("")}</div></div>` : ""}
+          </div>`;
+        } else {
+          html += `
+          <div class="card fixture" data-match="${m.id}">
+            <div class="fixture-meta"><span>${m.time}${m === nxt ? " · Next to lock" : ""}</span><span class="pill" data-pill></span></div>
+            <div class="matchup">${team(m.h, "home")}${scoreInputs("p", m, state.draft[m.id])}${team(m.a, "away")}</div>
+          </div>`;
+        }
+      });
+      html += `</div>`;
+    });
+    html += `
+      <div class="save-bar">
+        <span id="save-status"></span>
+        <button class="btn" id="save-btn" type="button">Save picks</button>
+      </div>`;
+    el.innerHTML = html;
+    wireDigits(el, card => {
+      state.draft[card.dataset.match] = readInputs(card);
+      state.dirty = true;
+      updatePickState();
+    });
+    document.getElementById("save-btn").addEventListener("click", savePicks);
+    nameChips(el);
+    updatePickState();
+    tick();
+  }
+
+  async function nameChips(scope) {
+    const chips = [...scope.querySelectorAll(".chip[data-uid]")];
+    if (!chips.length || !state.user) return;
+    const ps = await state.user.profiles([...new Set(chips.map(c => c.dataset.uid))]);
+    chips.forEach(c => { c.querySelector(".nm").textContent = (ps[c.dataset.uid] && ps[c.dataset.uid].name) || "Player"; });
+  }
+
+  function updatePickState() {
+    let done = 0, left = 0, half = 0;
+    FIXTURES.forEach(m => {
+      const val = isLocked(m) ? saved()[m.id] : state.draft[m.id];
+      const ok = !!parse(val);
+      if (ok) done++;
+      if (!isLocked(m)) {
+        if (!ok) left++;
+        if (val && !ok) half++;
+        const pill = document.querySelector(`[data-match="${m.id}"] [data-pill]`);
+        if (pill) {
+          const isSaved = ok && saved()[m.id] === val;
+          pill.textContent = ok ? (isSaved ? "Saved" : "Not saved") : (half && val ? "Needs both scores" : "Needs a pick");
+          pill.className = "pill " + (ok && isSaved ? "pill-open" : "pill-need");
+        }
+      }
+    });
+    document.getElementById("picked-count").textContent = `${done} of ${FIXTURES.length} picked`;
+    document.getElementById("picked-bar").style.width = (done / FIXTURES.length * 100) + "%";
+    const btn = document.getElementById("save-btn"), st = document.getElementById("save-status");
+    btn.disabled = !state.dirty || state.saving || !nextMatch();
+    btn.textContent = state.saving ? "Saving…" : "Save picks";
+    st.textContent = !nextMatch() ? "Picks are closed for this gameweek"
+      : state.dirty ? "You have unsaved changes"
+      : left ? `${left} match${left === 1 ? "" : "es"} still to pick` : "All picks saved";
+  }
+
+  async function savePicks() {
+    // Only open matches take the edited value; locked matches keep what was saved before kick-off.
+    const gw = Object.assign({}, saved());
+    FIXTURES.forEach(m => {
+      if (isLocked(m)) return;
+      if (parse(state.draft[m.id])) gw[m.id] = state.draft[m.id]; else delete gw[m.id];
+    });
+    const doc = Object.assign({}, state.myDoc, { [GW.key]: gw, updatedAt: new Date().toISOString() });
+    state.saving = true; updatePickState();
+    try {
+      if (state.mode === "db") await state.db.doc("picks/" + state.uid).set(doc);
+      else local("gwp-picks", doc);
+      state.myDoc = doc;
+      state.players[state.mode === "db" ? state.uid : "me"] = gw;
+      state.dirty = false;
+      showToast(`Picks saved for <b>${GW.label}</b>`);
+    } catch (e) {
+      showToast(e && e.code === "invalid_argument"
+        ? "You can't save picks on this page. Ask Ben for Contributor access."
+        : "Couldn't save your picks. Check your connection and try again.");
+    }
+    state.saving = false;
+    updatePickState();
+    renderResults(); renderTable();
+  }
+
+  // ---------- Results ----------
+  function matchStatus(m) {
+    if (parse(state.results[m.id])) return ["Full time", "pill-ft"];
+    const ko = Date.parse(m.ko), now = Date.now();
+    if (now < ko) return ["Not started", "pill-open"];
+    if (now < ko + 2 * 3600 * 1000) return ["In play", "pill-live"];
+    return ["Awaiting result", "pill-need"];
+  }
+
+  function renderResults() {
+    const el = document.getElementById("view-results");
+    const mine = saved();
+    const me = statsFor(mine);
+    let html = `
+      <div class="hero">
+        <div><div class="eyebrow">Results so far</div><h1 id="h-results">${GW.label}</h1></div>
+        <div class="stats">
+          <div class="stat"><b>${me.pts}</b><span>your points</span></div>
+          <div class="stat"><b>${me.exact}</b><span>exact scores</span></div>
+          <div class="stat"><b>${me.played}/${FIXTURES.length}</b><span>matches finished</span></div>
+        </div>
+      </div>
+      <div class="key" aria-label="Points key">
+        <span><i class="pts pts-5">5</i> Exact score</span>
+        <span><i class="pts pts-2">2</i> Right result</span>
+        <span><i class="pts pts-0">0</i> Wrong or no pick</span>
+      </div>`;
+    groupByDay(FIXTURES).forEach(g => {
+      html += `<div class="day"><h2 class="day-title">${esc(g.day)}</h2>`;
+      g.items.forEach(m => {
+        const ft = state.results[m.id], has = !!parse(ft), pick = mine[m.id];
+        const [label, cls] = matchStatus(m);
+        const p = points(pick, ft);
+        const canEnter = state.canResults && isLocked(m);
+        html += `
+        <div class="card result" data-match="${m.id}">
+          <div class="fixture-meta"><span>${m.time}</span><span class="pill ${cls}">${label}</span></div>
+          <div class="matchup">${team(m.h, "home")}<div class="ft${has ? "" : " pending"}">${has ? esc(ft.replace("-", " – ")) : "– –"}<small>${has ? "FT" : esc(m.time)}</small></div>${team(m.a, "away")}</div>
+          <div class="mine">
+            <span>Your pick <b>${esc(parse(pick) ? pick : "none")}</b>${has ? ` · ${esc(why(pick, ft))}` : ""}</span>
+            ${has ? ptsBadge(p) : ""}
+          </div>
+          ${canEnter ? (has
+            ? `<div class="entry" data-entry hidden><span>Correct the full-time score</span>${scoreInputs("r", m, ft, true)}<button class="btn btn-sm" type="button" data-save-result>Save</button></div>
+               <div><button class="btn-ghost" type="button" data-edit-result>Edit result</button></div>`
+            : `<div class="entry" data-entry><span>Enter the full-time score</span>${scoreInputs("r", m, "", true)}<button class="btn btn-sm" type="button" data-save-result disabled>Save</button></div>`)
+          : ""}
+        </div>`;
+      });
+      html += `</div>`;
+    });
+    if (!state.canResults) html += `<p class="note">Full-time scores appear here once they are added.</p>`;
+    el.innerHTML = html;
+    wireDigits(el, card => {
+      card.querySelector("[data-save-result]").disabled = !parse(readInputs(card.querySelector("[data-entry]")));
+    });
+    el.querySelectorAll("[data-edit-result]").forEach(b => b.addEventListener("click", () => {
+      const card = b.closest("[data-match]");
+      card.querySelector("[data-entry]").hidden = false; b.parentElement.hidden = true;
+      card.querySelector('[data-entry] [data-side="h"]').focus();
+    }));
+    el.querySelectorAll("[data-save-result]").forEach(b => b.addEventListener("click", () => {
+      const card = b.closest("[data-match]");
+      saveResult(card.dataset.match, readInputs(card.querySelector("[data-entry]")));
+    }));
+  }
+
+  let resultWrite = Promise.resolve();
+  function saveResult(id, score) {
+    if (!parse(score)) return;
+    const next = Object.assign({}, state.results, { [id]: score });
+    resultWrite = resultWrite.then(async () => {
+      try {
+        if (state.mode === "db") await state.db.doc("results/" + GW.key).set(next);
+        else { const all = local("gwp-results") || {}; all[GW.key] = next; local("gwp-results", all); }
+        state.results = next;
+        const m = FIXTURES.find(f => f.id === id);
+        showToast(`Saved: ${esc(short(m))} <b>${esc(score)}</b>`);
+      } catch (e) {
+        showToast(e && e.code === "invalid_argument" ? "Only Ben can enter results." : "Couldn't save the result. Try again.");
+      }
+      renderResults(); renderTable(); renderPredict();
+    });
+  }
+
+  // ---------- Table ----------
+  async function renderTable() {
+    const el = document.getElementById("view-table");
+    const ids = Object.keys(state.players);
+    const rows = rank(ids.map(id => Object.assign({ id, you: id === state.uid || id === "me" }, statsFor(state.players[id]))));
+    const played = statsFor({}).played;
+    el.innerHTML = `
+      <div class="hero">
+        <div><div class="eyebrow">Season so far · from ${GW.label}</div><h1 id="h-table">Leaderboard</h1></div>
+      </div>
+      <div class="card table-card">
+        ${rows.length ? `<table>
+          <thead><tr><th scope="col">Pos</th><th scope="col">Player</th><th scope="col" title="Exact scores (5 pts)">Exact</th><th scope="col" title="Correct results (2 pts)">Result</th><th scope="col">Pts</th></tr></thead>
+          <tbody>${rows.map(r => `<tr class="${r.you ? "you" : ""}" data-uid="${esc(r.id)}">
+            <td class="pos">${r.shared ? "=" : ""}${r.pos}</td>
+            <td class="player"><span class="nm">${r.you ? "You" : "Player"}</span>${r.you ? `<span class="you-pill" hidden>You</span>` : ""}</td>
+            <td>${r.exact}</td><td>${r.res}</td><td class="total">${r.pts}</td></tr>`).join("")}</tbody>
+        </table>` : `<div class="empty">No picks saved yet. Save your Gameweek 10 picks and you'll appear here.</div>`}
+      </div>
+      <p class="note">${played ? `${played} of ${FIXTURES.length} matches counted so far.` : "Points appear once the first full-time score is in."} Exact score 5 pts · right result 2 pts. Players level on points are split by exact scores, then correct results; if still level they share the position (=).</p>`;
+    if (state.user && rows.length) {
+      const ps = await state.user.profiles(rows.map(r => r.id).filter(id => id !== "me"));
+      el.querySelectorAll("tr[data-uid]").forEach(tr => {
+        const p = ps[tr.dataset.uid];
+        if (p && p.name) {
+          tr.querySelector(".nm").textContent = p.name;
+          const pill = tr.querySelector(".you-pill");
+          if (pill) pill.hidden = false;
+        }
+      });
+    }
+  }
+
+  // ---------- Countdown + locking ----------
+  let lockedCount = FIXTURES.filter(isLocked).length;
+  function tick() {
+    const nowLocked = FIXTURES.filter(isLocked).length;
+    if (nowLocked !== lockedCount) { lockedCount = nowLocked; renderPredict(); renderResults(); return; }
+    const el = document.getElementById("countdown"), nxt = nextMatch();
+    if (!el || !nxt) return;
+    const ms = Math.max(0, Date.parse(nxt.ko) - Date.now());
+    const d = Math.floor(ms / 86400000), h = Math.floor(ms % 86400000 / 3600000), m = Math.floor(ms % 3600000 / 60000);
+    el.textContent = (d ? `${d}d ` : "") + `${h}h ${String(m).padStart(2, "0")}m`;
+  }
+  setInterval(tick, 20000);
+
+  // ---------- Routing ----------
+  const VIEWS = ["predict", "results", "table"];
+  function route() {
+    const v = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "predict";
+    VIEWS.forEach(n => { document.getElementById("view-" + n).hidden = n !== v; });
+    document.querySelectorAll(".tabbar a").forEach(a => {
+      if (a.dataset.tab === v) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+    });
+    window.scrollTo(0, 0);
+  }
+  const renderAll = () => { renderPredict(); renderResults(); renderTable(); };
+
+  // ---------- Boot: render from this browser, then switch to the shared database if available ----------
+  loadLocal();
+  renderAll();
+  window.addEventListener("hashchange", route);
+  route();
+
+  async function connect() {
+    const c = window.claude;
+    if (!c || typeof c.use !== "function") { setSyncTag(); return; }
+    const [db, user] = await Promise.all([c.use("db"), c.use("user")]);
+    const uid = user ? await user.id() : null;
+    if (!db || !uid) { setSyncTag(); return; }
+    state.db = db; state.user = user; state.uid = uid; state.mode = "db";
+    state.canResults = await user.canEdit();
+    state.myDoc = {}; state.players = {}; state.results = {};
+    if (!state.dirty) state.draft = {};
+    setSyncTag();
+    renderAll();
+
+    let firstPicks = true;
+    const slow = setTimeout(() => showToast("Still loading your picks…"), 10000);
+    db.collection("picks").onSnapshot(snap => {
+      if (!snap.metadata.fromCache) clearTimeout(slow);
+      const players = {};
+      let myDoc = {};
+      snap.docs.forEach(d => {
+        const data = d.data() || {};
+        if (d.id === uid) myDoc = data;
+        if (data[GW.key] && Object.keys(data[GW.key]).length) players[d.id] = data[GW.key];
+      });
+      state.myDoc = myDoc; state.players = players;
+      if (!state.dirty) state.draft = Object.assign({}, myDoc[GW.key] || {});
+      if (firstPicks || !state.dirty) renderPredict(); else updatePickState();
+      firstPicks = false;
+      renderResults(); renderTable();
+    }, () => { clearTimeout(slow); showToast("Couldn't load picks. Reload the page to try again."); });
+
+    db.doc("results/" + GW.key).onSnapshot(snap => {
+      state.results = snap.exists ? Object.assign({}, snap.data()) : {};
+      renderResults(); renderTable();
+      if (!state.dirty) renderPredict();
+    }, () => {});
+  }
+  connect();
+})();
+</script>

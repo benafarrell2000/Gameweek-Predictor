@@ -338,6 +338,7 @@
       .pip { width: 12px; height: 12px; }
       .panel { padding-top: 18px; }
       .recap li { grid-template-columns: 22px 1fr 46px 46px; font-size: 19px; }
+      .rules { font-size: 20px; gap: 4px 12px; }
     }
   </style>
 </head>
@@ -1034,7 +1035,7 @@
       const bands = [...SCORING_BANDS].sort((a, b) => a.within - b.within);
       const rows = bands.map((b) => {
         const label = b.within === 0 ? "Bang on" : `${b.within} either side`;
-        return `<span>${label}</span><b>${b.chance}% to score</b>`;
+        return `<span>${label}</span><b>${b.chance}% chance of scoring</b>`;
       });
       rows.push(`<span>Further out</span><b class="zero">Missed penalty</b>`);
       return rows.join("");
@@ -1047,7 +1048,7 @@
       const best = store.get(BEST_KEY);
       panel.innerHTML = `
         <h1 class="title">PENALTY PUNDIT</h1>
-        <p class="tag">Guess the number. Take the penalty.</p>
+        <p class="tag">Guess the Answer. Take the penalty.</p>
         <div class="rules">${bandsHtml()}</div>
         <div><button class="btn" id="startBtn" type="button">START</button></div>
         ${best !== null ? `<p class="best">YOUR BEST: ${best} / ${QUESTIONS_PER_GAME}</p>` : ""}

@@ -1,77 +1,20 @@
-# Gameweek Predictor
+# Penalty Pundit
 
-A phone-first website for predicting the scores of each weekend's Premier League matches, scored against the real results.
+An arcade-style football quiz. Guess the answer, then take the penalty: the closer your guess, the better your chance of scoring.
 
-Built by Ben Farrell with Claude (Anthropic's AI assistant) in Claude Code, November 2026.
+**Play it:** https://benafarrell2000.github.io/Gameweek-Predictor/penalty-pundit.html
 
-**Try it:** https://benafarrell2000.github.io/Gameweek-Predictor/ (on GitHub Pages, picks and results are saved in your own browser).
+Built with Claude (Anthropic's AI assistant) in Claude Code, November 2026.
 
-**Also in this repository:** [Play Penalty Pundit ⚽](https://benafarrell2000.github.io/Gameweek-Predictor/penalty-pundit.html), an arcade football quiz where how close your guess is decides whether you score the penalty. [More about it below](#penalty-pundit).
+## How to play
 
-## What it does
+1. Press **START**. There are 5 questions, and every answer is a number.
+2. Type your guess and press **SHOOT**.
+3. The answer is revealed and the scoring-chance meter swings.
+4. A pixel-art footballer takes the penalty. It ends in one of GOAL!, SAVED!, OFF THE POST!, OVER THE BAR! or WIDE!
+5. After 5 kicks the full-time screen shows your score, a rank, and every question with your guess and the answer.
 
-The site has three screens, switched from a tab bar at the bottom.
-
-| Screen | What you can do |
-| --- | --- |
-| **Predict** | Type a home and away score for each of the 10 Gameweek 10 fixtures, then press **Save picks**. A countdown shows the next kick-off. Each match locks at its own real kick-off time, after which its pick can't be changed. |
-| **Results** | Follow each match from Not started to In play to Full time. Once a full-time score is in, you see your points for that match and the reason. The owner can type in or correct full-time scores. |
-| **Table** | A leaderboard of every player with saved picks: position, exact scores, correct results and total points. |
-
-### Scoring
-
-| Prediction vs result | Points |
-| --- | --- |
-| Exact score (predict 2-1, finishes 2-1) | 5 |
-| Right result, wrong score (predict 2-1, finishes 3-1) | 2 |
-| Wrong result, or no prediction | 0 |
-
-Points don't stack, so an exact score is worth 5, not 7. Players level on points are separated by exact scores, then correct results. If they're still level, they share the position (shown as `=`).
-
-## Project files
-
-| Path | What it is |
-| --- | --- |
-| `mockup/index.html` | The whole app: HTML, CSS and JavaScript in one file, with no build step. This is the version published on claude.ai. |
-| `index.html` | The same app as a standalone web page, served by GitHub Pages. |
-| `penalty-pundit.html` | Penalty Pundit, a separate arcade quiz game in one self-contained file. |
-| `docs/PRD.md` | The product requirements document: goals, user stories, scoring rules, design, technical plan, risks. |
-| `CLAUDE.md.txt` | The original brief given to Claude at the start of the project. |
-| `MEMORY.md.txt` | The project log Claude kept: progress, decisions and lessons learned, session by session. |
-
-## How it works
-
-- **No framework.** It's plain JavaScript: the screens are drawn from a small state object, and the scoring rules are a pure `points(pick, actual)` function.
-- **Hosting and storage.** The live version is hosted as a Claude Artifact on claude.ai.
-  - Picks are saved in the artifact's database: `picks/<user id>`, holding `{ "gw10": { "EVE-COV": "2-1", … } }`.
-  - Full-time scores are saved under `results/gw10`.
-  - Access rules let each person write only their own picks, and only the owner (or an editor) write results.
-- **Offline fallback.** Opened anywhere else, for example straight from this repository, the page still works but saves to the browser's `localStorage`. The header then shows "This device" instead of "Synced".
-- **Kick-off locking.** Each match locks when the browser clock passes its kick-off time, given in UTC (UK time in November).
-- **Results.** Scheduled Claude tasks run after each matchday. They look up the official full-time scores and write any that are missing, never overwriting a score that's already been entered.
-
-## Run it locally
-
-Download `mockup/index.html` and open it in a browser. That's all it needs.
-
-## How AI was used
-
-1. **Requirements.** Claude turned a one-paragraph brief (`CLAUDE.md.txt`) into a full PRD (`docs/PRD.md`).
-2. **Design and build.** Claude built a clickable mock-up in Premier League colours, then turned it into a working app over several rounds of feedback.
-3. **Human corrections.** Ben made the key calls along the way:
-   - replacing invented fixtures with the real Gameweek 10 fixtures
-   - removing pre-filled example scores
-   - making picks save for real and results appear through the week
-4. **Memory.** Claude kept `MEMORY.md.txt` up to date after every step, so each new session could pick up where the last one left off.
-5. **Automation.** Claude scheduled tasks to fetch and enter the real results after each matchday.
-
-**Lesson learned:** the AI made up plausible-looking fixtures until it was given real data. Anything factual (fixtures, results) now comes from a real source or is clearly labelled as an example.
-
-## Penalty Pundit
-
-**Play:** https://benafarrell2000.github.io/Gameweek-Predictor/penalty-pundit.html
-
-An arcade-style football quiz with 5 questions, each with a number for an answer. After each guess the answer is revealed. Then a pixel-art footballer takes a penalty, and how close you were decides your chance of scoring:
+How close you are decides your chance of scoring:
 
 | Your guess | Result |
 | --- | --- |
@@ -83,11 +26,61 @@ An arcade-style football quiz with 5 questions, each with a number for an answer
 
 A perfect quiz always scores 5/5, but being a little off can still score. The aim is to score as many of the 5 penalties as you can.
 
-- **Built with:** plain HTML, CSS and JavaScript. The stadium and players are drawn on a 320×180 canvas, and the sound effects are made with the Web Audio API, with no audio files.
-- **Changing it:** the questions, answers and scoring bands are listed at the top of the script in `penalty-pundit.html`. Each question can have its own bands.
+## How it works
+
+- **One file, no build step.** It's all in `penalty-pundit.html`: plain HTML, CSS and JavaScript, plus two Google Fonts.
+- **Graphics.** The stadium, crowd, goal, keeper and big-headed #10 are drawn on a 320×180 pixel canvas and scaled up.
+- **Sound.** Every sound effect is made in the browser with the Web Audio API, with no audio files. There's a SOUND ON/OFF toggle.
+- **Fairness.** The result is decided first, with a random roll against your scoring chance. The meter and the penalty animation are then played to match it.
+- **Easy to change.** The questions, answers and scoring bands are listed at the top of the script. Each question can have its own bands.
+- **Saved in your browser:** your best score and the sound setting.
+
+## Run it locally
+
+Download `penalty-pundit.html` and open it in a browser. That's all it needs.
+
+## How AI was used
+
+1. **The brief.** I described the game I wanted: 10 number questions, a penalty after each one, and scoring chances based on how close the guess is. Claude designed and built the whole game from that, including the pixel art, the animation and the sound.
+2. **Testing.** Claude played full games in a browser to check every part worked: the meter, goals, saves, misses, the full-time screen and the phone layout.
+3. **My changes.** I set the final 5 questions and their answers, chose the scoring bands, changed the wording, and had my name taken off the game.
+4. **Memory.** Claude kept `MEMORY.md.txt` up to date after every step, so the work could carry on across sessions. The game was even handed from one Claude session to another.
+
+---
+
+## Also in this repository: Gameweek Predictor
+
+A phone-first website for predicting the score of each Premier League match in a gameweek, scored against the real results.
+
+**Try it:** https://benafarrell2000.github.io/Gameweek-Predictor/ (on GitHub Pages, picks and results are saved in your own browser).
+
+| Screen | What you can do |
+| --- | --- |
+| **Predict** | Enter a score for each of the 10 Gameweek 10 fixtures and save. Each match locks at its real kick-off time. |
+| **Results** | Follow each match to full time and see your points and the reason. |
+| **Table** | A leaderboard ranked by points, then exact scores, then correct results. |
+
+**Scoring:** an exact score is 5 points, the right result with the wrong score is 2 points, and anything else is 0.
+
+**How it was built with AI:**
+- Claude turned my one-paragraph brief (`CLAUDE.md.txt`) into a full product requirements document (`docs/PRD.md`).
+- It then built a mock-up and turned it into a working app over several rounds of my feedback.
+- On the claude.ai version, picks are saved to the account, and scheduled Claude tasks fill in the real results after each matchday.
+
+**Lesson learned:** the AI invented plausible-looking fixtures until I gave it the real ones. Anything factual now comes from a real source or is clearly labelled as an example.
+
+## Project files
+
+| Path | What it is |
+| --- | --- |
+| `penalty-pundit.html` | Penalty Pundit: the whole game in one file. |
+| `index.html` | Gameweek Predictor as a standalone page, served by GitHub Pages. |
+| `mockup/index.html` | Gameweek Predictor as published on claude.ai. |
+| `docs/PRD.md` | The Gameweek Predictor product requirements document. |
+| `CLAUDE.md.txt` | The original brief given to Claude. |
+| `MEMORY.md.txt` | The project log Claude kept: progress, decisions and lessons learned. |
 
 ## Next steps
 
-- Load fixtures from a data API instead of hard-coding each gameweek.
-- Add friends as players (each needs Contributor access to the page).
-- Build the full version from the PRD: Next.js, Supabase and football-data.org.
+- **Penalty Pundit:** add more questions, with a new random set each game.
+- **Gameweek Predictor:** load fixtures from a data API instead of hard-coding each gameweek, and add friends as players.

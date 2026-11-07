@@ -20,6 +20,9 @@
       --yellow: #f2c94c;
       --green: #5fd38d;
       --red: #ff6b6b;
+      --fw-pink: #ff5fa2;
+      --fw-orange: #ff9f43;
+      --fw-violet: #c86bfa;
       --pixel: "Press Start 2P", monospace;
     }
 
@@ -30,6 +33,9 @@
     body {
       min-height: 100vh;
       background:
+        radial-gradient(circle at 12% 8%, rgba(255, 95, 162, 0.16), transparent 28%),
+        radial-gradient(circle at 88% 14%, rgba(255, 159, 67, 0.14), transparent 26%),
+        radial-gradient(circle at 70% 2%, rgba(200, 107, 250, 0.12), transparent 22%),
         radial-gradient(ellipse 70% 45% at 50% 0%, #16334d, transparent 70%),
         var(--bg);
       color: var(--text);
@@ -89,6 +95,8 @@
       box-shadow:
         0 0 0 4px var(--bg),
         0 0 36px rgba(140, 196, 240, 0.25),
+        -24px -18px 60px rgba(255, 95, 162, 0.12),
+        24px -18px 60px rgba(255, 159, 67, 0.12),
         inset 0 0 40px rgba(0, 0, 0, 0.4);
       padding: 14px;
     }
@@ -172,6 +180,20 @@
       letter-spacing: 2px;
       line-height: 1.3;
     }
+    .special {
+      display: inline-block;
+      font-family: var(--pixel);
+      font-size: 10px;
+      letter-spacing: 2px;
+      margin-top: 14px;
+      padding: 7px 12px;
+      border: 2px solid var(--fw-pink);
+      border-radius: 6px;
+      color: var(--fw-pink);
+      box-shadow: 0 0 14px rgba(255, 95, 162, 0.35);
+      animation: sparkle 2.4s steps(1) infinite;
+    }
+    .special::before, .special::after { content: "\2726"; margin: 0 8px; color: var(--yellow); }
     .tag { font-size: 28px; margin: 14px 0 18px; }
     .rules {
       display: inline-grid;
@@ -223,6 +245,9 @@
       caret-color: var(--yellow);
     }
     .guess::placeholder { color: #2c4660; }
+    .guess-wrap { display: inline-flex; align-items: center; gap: 10px; }
+    .guess.has-affix { width: 120px; }
+    .affix { font-family: var(--pixel); font-size: 16px; color: var(--yellow); }
     .hint { font-size: 22px; color: var(--muted); margin-top: 16px; }
 
     /* reveal */
@@ -327,6 +352,12 @@
     .shake { animation: shake 0.3s; }
 
     @keyframes blink { 50% { opacity: 0.2; } }
+    @keyframes sparkle {
+      0% { color: var(--fw-pink); border-color: var(--fw-pink); box-shadow: 0 0 14px rgba(255, 95, 162, 0.35); }
+      33% { color: var(--fw-orange); border-color: var(--fw-orange); box-shadow: 0 0 14px rgba(255, 159, 67, 0.35); }
+      66% { color: var(--fw-violet); border-color: var(--fw-violet); box-shadow: 0 0 14px rgba(200, 107, 250, 0.35); }
+    }
+    @media (prefers-reduced-motion: reduce) { .special { animation: none; } }
     @keyframes pop { 0% { transform: scale(0.6); opacity: 0; } 70% { transform: scale(1.12); } 100% { transform: scale(1); opacity: 1; } }
     @keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
 
@@ -377,41 +408,55 @@
       { within: 3, chance: 25 },
     ];
 
+    // Name of this quiz. Change it whenever the questions change, so
+    // everyone's best score starts fresh for the new set.
+    const QUIZ_ID = "fireworks";
+
     // The questions, asked in this order.
-    //   q     the question
-    //   a     the answer (a whole number)
-    //   unit  what the answer counts, used in "2 GOALS OUT" (singular)
-    //   fact  shown after the penalty
-    //   bands optional: this question's own scoring bands
+    //   q          the question
+    //   a          the answer (a whole number)
+    //   unit       what the answer counts, used in "2 GOALS OUT" (singular)
+    //   unitPlural optional: the plural, if it isn't just unit + "s"
+    //   prefix     optional: shown before the number, e.g. "£"
+    //   suffix     optional: shown after the answer box, e.g. "million"
+    //   short      optional: shown after numbers in results, e.g. "m" for £72m
+    //   fact       shown after the penalty
+    //   bands      optional: this question's own scoring bands
     const QUESTIONS = [
       {
-        q: "In what year were Chelsea founded?", a: 1905, unit: "year",
-        fact: "Chelsea were founded in a pub opposite Stamford Bridge, the ground they still play at.",
+        q: "How many red cards did John Terry get for Chelsea?", a: 6, unit: "red card",
+        fact: "Terry won five Premier League titles with Chelsea.",
         bands: [{ within: 0, chance: 100 }, { within: 1, chance: 75 }, { within: 2, chance: 50 }, { within: 3, chance: 25 }],
       },
       {
-        q: "How many Premier League goals has Harry Kane scored?", a: 213, unit: "goal",
-        fact: "He scored all 213 for Spurs. Only Alan Shearer, with 260, has scored more.",
+        q: "How many goals did Beckham score for England?", a: 17, unit: "goal",
+        fact: "The most famous was his last-minute free kick against Greece in 2001, which sent England to the 2002 World Cup.",
         bands: [{ within: 0, chance: 100 }, { within: 1, chance: 75 }, { within: 2, chance: 50 }, { within: 3, chance: 25 }],
       },
       {
-        q: "How many appearances has Dan Burn made for England?", a: 11, unit: "cap",
-        fact: "He made his England debut in 2025, at the age of 32.",
+        q: "In what year did Preston win their first First Division title?", a: 1889, unit: "year",
+        fact: "Preston's 'Invincibles' went the whole league season unbeaten, then won the FA Cup without conceding a goal.",
         bands: [{ within: 0, chance: 100 }, { within: 1, chance: 75 }, { within: 2, chance: 50 }, { within: 3, chance: 25 }],
       },
       {
-        q: "How many league titles have Real Madrid won?", a: 36, unit: "title",
-        fact: "That's more Spanish league titles than any other club.",
+        q: "How much money did Chelsea spend on Kepa Arrizabalaga’s transfer from Real Madrid?", a: 72,
+        unit: "million", unitPlural: "million", prefix: "£", suffix: "million", short: "m",
+        fact: "It made him the most expensive goalkeeper in history.",
         bands: [{ within: 0, chance: 100 }, { within: 1, chance: 75 }, { within: 2, chance: 50 }, { within: 3, chance: 25 }],
       },
       {
-        q: "How old was Roger Milla when he scored in the 1994 World Cup?", a: 42, unit: "year",
-        fact: "His goal against Russia made him the oldest scorer in World Cup history.",
+        q: "How many games did Messi and Mbappe play together for PSG?", a: 67, unit: "game",
+        fact: "Messi spent two seasons at PSG, from 2021 to 2023.",
         bands: [{ within: 0, chance: 100 }, { within: 1, chance: 75 }, { within: 2, chance: 50 }, { within: 3, chance: 25 }],
       },
     ];
     const QUESTIONS_PER_GAME = QUESTIONS.length;
-    const BEST_KEY = "pp-best-" + QUESTIONS_PER_GAME; // best score is kept per game length
+    const BEST_KEY = "pp-best-" + QUIZ_ID; // best score is kept per quiz
+
+    // A number as it should be shown for a question, e.g. 72 -> "£72m"
+    const show = (n, q) => `${q.prefix || ""}${n}${q.short || ""}`;
+    // How far out a guess was, e.g. "2 GOALS", "£1 MILLION"
+    const howFar = (n, q) => `${q.prefix || ""}${n} ${n === 1 ? q.unit : (q.unitPlural || q.unit + "s")}`.toUpperCase();
 
     // Old pool of year questions, kept for later. Not used in the game.
     const SPARE_QUESTIONS = [
@@ -550,6 +595,12 @@
         this.tone(330, 0.18, { vol: 0.05, delay: 0.18 });
         this.tone(220, 0.35, { vol: 0.05, delay: 0.36 });
       },
+      bang() {
+        // firework: a low thump, then a crackle
+        this.tone(90, 0.25, { type: "sine", vol: 0.12, slideTo: 40 });
+        this.noise(0.35, { vol: 0.07, freq: 2400, delay: 0.05 });
+        for (let i = 0; i < 4; i++) this.noise(0.05, { vol: 0.03, freq: 5000, delay: 0.25 + i * rand(0.04, 0.09) });
+      },
       start() {
         [392, 523, 659, 784].forEach((f, i) => this.tone(f, 0.1, { vol: 0.05, delay: i * 0.07 }));
       },
@@ -655,6 +706,104 @@
       R(302, 2, 3, 3, "#f4fbff"); R(307, 2, 3, 3, "#f4fbff"); R(312, 2, 3, 3, "#f4fbff");
     }
 
+    // --- fireworks over the skyline -------------------------------------
+
+    const FW_COLORS = ["#ff5f6d", "#ffc371", "#f2c94c", "#8cc4f0", "#c86bfa", "#5fd38d", "#ffffff", "#ff9f43", "#ff7eb6"];
+    const fireworks = { rockets: [], sparks: [], queue: [], flashes: [], nextAuto: 0, autoGap: [500, 1300] };
+
+    function launchRocket(opts = {}) {
+      fireworks.rockets.push({
+        x: opts.x != null ? opts.x : rand(24, W - 24),
+        y: 58,
+        vx: rand(-0.012, 0.012),
+        vy: -rand(0.1, 0.13),
+        targetY: opts.y != null ? opts.y : rand(10, 34),
+        color: pick(FW_COLORS),
+        color2: Math.random() < 0.4 ? pick(FW_COLORS) : null,
+        big: !!opts.big,
+        loud: !!opts.loud,
+      });
+    }
+
+    // A volley of rockets, staggered so they burst one after another.
+    function volley(now, count, loud) {
+      for (let i = 0; i < count; i++) {
+        fireworks.queue.push({ at: now + i * rand(140, 260), opts: { big: i % 2 === 0, loud: loud && i < 5 } });
+      }
+    }
+
+    function burst(r, now) {
+      const kind = pick(["peony", "peony", "ring", "willow"]);
+      const n = r.big ? 56 : 40;
+      const speed = r.big ? 0.07 : 0.052;
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * Math.PI * 2 + rand(-0.08, 0.08);
+        const s = kind === "ring" ? speed : speed * rand(0.35, 1);
+        const life = kind === "willow" ? rand(1500, 2000) : rand(800, 1300);
+        fireworks.sparks.push({
+          x: r.x, y: r.y,
+          vx: Math.cos(a) * s, vy: Math.sin(a) * s,
+          life, max: life,
+          c: r.color2 && i % 2 ? r.color2 : r.color,
+          drag: kind === "willow" ? 0.996 : 0.992,
+          g: kind === "willow" ? 0.00005 : 0.00003,
+        });
+      }
+      fireworks.flashes.push({ x: r.x, y: r.y, t0: now, c: r.color });
+      if (r.loud) sound.bang();
+    }
+
+    function updateFireworks(now, dt) {
+      if (now > fireworks.nextAuto) {
+        launchRocket();
+        fireworks.nextAuto = now + rand(fireworks.autoGap[0], fireworks.autoGap[1]);
+      }
+      fireworks.queue = fireworks.queue.filter((q) => {
+        if (now >= q.at) { launchRocket(q.opts); return false; }
+        return true;
+      });
+      fireworks.rockets = fireworks.rockets.filter((r) => {
+        r.x += r.vx * dt;
+        r.y += r.vy * dt;
+        if (r.y <= r.targetY) { burst(r, now); return false; }
+        return true;
+      });
+      fireworks.sparks = fireworks.sparks.filter((p) => {
+        const d = Math.pow(p.drag, dt / 16);
+        p.vx *= d;
+        p.vy = p.vy * d + p.g * dt;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        return (p.life -= dt) > 0;
+      });
+      fireworks.flashes = fireworks.flashes.filter((f) => now - f.t0 < 260);
+    }
+
+    function drawFireworks(now) {
+      for (const f of fireworks.flashes) {
+        const a = 0.3 * (1 - (now - f.t0) / 260);
+        const g = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, 40);
+        g.addColorStop(0, `rgba(255,240,220,${a.toFixed(3)})`);
+        g.addColorStop(1, "rgba(255,240,220,0)");
+        ctx.fillStyle = g;
+        ctx.fillRect(f.x - 40, f.y - 40, 80, 80);
+      }
+      for (const r of fireworks.rockets) {
+        R(r.x, r.y, 1, 2, "#fff4d6");
+        ctx.globalAlpha = 0.5; R(r.x, r.y + 2, 1, 2, "#ffb347");
+        ctx.globalAlpha = 0.25; R(r.x, r.y + 4, 1, 2, "#ff7a3d");
+        ctx.globalAlpha = 1;
+      }
+      for (const p of fireworks.sparks) {
+        const t = p.life / p.max;
+        if (t < 0.25 && Math.random() < 0.35) continue; // crackle as it fades
+        ctx.globalAlpha = Math.min(1, t * 1.8);
+        const sz = t > 0.45 ? 2 : 1; // fat sparks that shrink as they fade
+        R(p.x, p.y, sz, sz, t > 0.88 ? "#ffffff" : p.c);
+      }
+      ctx.globalAlpha = 1;
+    }
+
     function drawStand(now) {
       R(0, 56, W, 38, "#0c1a28");
       R(0, 56, W, 2, "#1d3247");
@@ -675,7 +824,7 @@
       ctx.font = '8px "Press Start 2P"';
       ctx.textBaseline = "top";
       const goalFlash = now < scene.crowdUntil;
-      const msg = goalFlash ? "GOAL!  GOAL!  GOAL!  " : "PENALTY PUNDIT  *  GUESS IT  *  SCORE IT  *  ";
+      const msg = goalFlash ? "GOAL!  GOAL!  GOAL!  " : "PENALTY PUNDIT  *  FIREWORKS SPECIAL  *  GUESS IT  *  SCORE IT  *  ";
       ctx.fillStyle = goalFlash ? (Math.floor(now / 150) % 2 ? "#f2c94c" : "#ffffff") : "#8cc4f0";
       const mw = Math.max(1, ctx.measureText(msg).width);
       const off = (now / (goalFlash ? 12 : 30)) % mw;
@@ -758,6 +907,25 @@
       R(xl - 1, bottom - 2, 4, 2, "#111");
     }
 
+    // Tiny pixel font for the shirt. Letters are 3 wide; "9" is 3x5, letters 3x4.
+    const SHIRT_FONT = {
+      T: ["###", ".#.", ".#.", ".#."],
+      R: ["##.", "#.#", "##.", "#.#"],
+      U: ["#.#", "#.#", "#.#", "###"],
+      D: ["##.", "#.#", "#.#", "##."],
+      Y: ["#.#", "#.#", ".#.", ".#."],
+      9: ["###", "#.#", "###", "..#", "###"],
+    };
+    function drawShirtText(text, x, y, color) {
+      [...text].forEach((ch, i) => {
+        const rows = SHIRT_FONT[ch];
+        if (!rows) return;
+        rows.forEach((row, ry) => {
+          [...row].forEach((px, rx) => { if (px === "#") R(x + i * 4 + rx, y + ry, 1, 1, color); });
+        });
+      });
+    }
+
     function drawKicker(x, fy, pose, now) {
       const k = KICKER;
       // legs
@@ -766,23 +934,22 @@
       else if (pose === "kick") { kickerLeg(x - 5, fy, 0); kickerLeg(x + 3, fy, 7); }
       else { kickerLeg(x - 5, fy, 0); kickerLeg(x + 2, fy, 0); }
 
-      R(x - 6, fy - 13, 13, 5, k.shorts);
-      R(x - 7, fy - 24, 15, 11, k.shirt);
-      R(x + 6, fy - 24, 2, 11, k.shirtD);
-      // number 10
-      R(x - 4, fy - 22, 1, 5, k.navy); R(x - 5, fy - 21, 1, 1, k.navy);
-      R(x - 1, fy - 22, 4, 1, k.navy); R(x - 1, fy - 18, 4, 1, k.navy);
-      R(x - 1, fy - 22, 1, 5, k.navy); R(x + 2, fy - 22, 1, 5, k.navy);
+      R(x - 7, fy - 13, 15, 5, k.shorts);
+      R(x - 10, fy - 24, 21, 11, k.shirt);
+      R(x + 9, fy - 24, 2, 11, k.shirtD);
+      // "TRUDY" and "9" on the back of the shirt
+      drawShirtText("TRUDY", x - 9, fy - 23, k.navy);
+      drawShirtText("9", x - 1, fy - 18, k.navy);
 
       // arms
       if (pose === "celebrate") {
         const bob = Math.floor(now / 140) % 2;
-        R(x - 9, fy - 34 - bob, 2, 11, k.skin); R(x + 8, fy - 34 + bob, 2, 11, k.skin);
-        R(x - 9, fy - 24, 2, 3, k.shirt); R(x + 8, fy - 24, 2, 3, k.shirt);
+        R(x - 12, fy - 34 - bob, 2, 11, k.skin); R(x + 11, fy - 34 + bob, 2, 11, k.skin);
+        R(x - 12, fy - 24, 2, 3, k.shirt); R(x + 11, fy - 24, 2, 3, k.shirt);
       } else {
         const swing = pose === "runA" ? 2 : pose === "runB" ? -2 : pose === "kick" ? -3 : 0;
-        R(x - 9, fy - 24, 2, 3, k.shirt); R(x - 9, fy - 21 + swing, 2, 5, k.skin);
-        R(x + 8, fy - 24, 2, 3, k.shirt); R(x + 8, fy - 21 - swing, 2, 5, k.skin);
+        R(x - 12, fy - 24, 2, 3, k.shirt); R(x - 12, fy - 21 + swing, 2, 5, k.skin);
+        R(x + 11, fy - 24, 2, 3, k.shirt); R(x + 11, fy - 21 - swing, 2, 5, k.skin);
       }
 
       // big head (seen from behind)
@@ -867,6 +1034,7 @@
         sound.goal();
         scene.crowdUntil = now + 2600;
         scene.bulge = { x: k.tx, y: k.ty, amp: 6 };
+        volley(now, 7, true);
         const colors = ["#f2c94c", "#8cc4f0", "#ffffff", "#5fd38d", "#ff6b6b"];
         for (let i = 0; i < 90; i++) {
           scene.confetti.push({ x: rand(20, 300), y: rand(-30, 0), vx: rand(-0.03, 0.03), vy: rand(0.02, 0.07), c: pick(colors), life: rand(1800, 2800) });
@@ -961,6 +1129,7 @@
         if (!k.arrived && t >= ARRIVE + 60) { k.arrived = true; onArrive(k, now); }
         if (!k.resolved && t >= ARRIVE + 700) { k.resolved = true; k.resolve(); }
       }
+      updateFireworks(now, dt);
       if (scene.bulge) scene.bulge.amp *= Math.pow(0.992, dt);
       scene.confetti = scene.confetti.filter((p) => (p.life -= dt) > 0 && p.y < H + 4);
       for (const p of scene.confetti) {
@@ -971,6 +1140,7 @@
 
     function draw(now) {
       drawBackground(now);
+      drawFireworks(now);
       drawStand(now);
       drawBoards(now);
       drawPitch();
@@ -1048,6 +1218,7 @@
       const best = store.get(BEST_KEY);
       panel.innerHTML = `
         <h1 class="title">PENALTY PUNDIT</h1>
+        <p class="special">FIREWORKS SPECIAL</p>
         <p class="tag">Guess the Answer. Take the penalty.</p>
         <div class="rules">${bandsHtml()}</div>
         <div><button class="btn" id="startBtn" type="button">START</button></div>
@@ -1080,7 +1251,11 @@
         <p class="q">${q.q}</p>
         <form id="guessForm" autocomplete="off" novalidate>
           <div class="row">
-            <input id="guess" class="guess" type="text" inputmode="numeric" maxlength="4" placeholder="?" aria-label="Your answer">
+            <div class="guess-wrap">
+              ${q.prefix ? `<span class="affix" aria-hidden="true">${q.prefix}</span>` : ""}
+              <input id="guess" class="guess${q.prefix || q.suffix ? " has-affix" : ""}" type="text" inputmode="numeric" maxlength="4" placeholder="?" aria-label="Your answer${q.suffix ? ` in ${q.prefix || ""}${q.suffix}` : ""}">
+              ${q.suffix ? `<span class="affix" aria-hidden="true">${q.suffix}</span>` : ""}
+            </div>
             <button class="btn" type="submit">SHOOT</button>
           </div>
         </form>
@@ -1138,10 +1313,10 @@
       sound.whistle();
       panel.innerHTML = `
         <div class="reveal-grid">
-          <div class="stat"><p class="label">YOU SAID</p><p class="value">${guess}</p></div>
-          <div class="stat answer"><p class="label">ANSWER</p><p class="value">${q.a}</p></div>
+          <div class="stat"><p class="label">YOU SAID</p><p class="value">${show(guess, q)}</p></div>
+          <div class="stat answer"><p class="label">ANSWER</p><p class="value">${show(q.a, q)}</p></div>
         </div>
-        <p class="verdict ${diff === 0 ? "exact" : ""}">${diff === 0 ? "BANG ON!" : `${plural(diff, q.unit || "").toUpperCase()} OUT`}</p>
+        <p class="verdict ${diff === 0 ? "exact" : ""}">${diff === 0 ? "BANG ON!" : `${howFar(diff, q)} OUT`}</p>
         <div class="meter-wrap">
           <div class="meter"><div class="zone" style="width:${chance}%"></div><div class="needle" id="needle" style="left:0%"></div></div>
           <div class="meter-label"><span>SCORING CHANCE</span><span>${chance}%</span></div>
@@ -1198,6 +1373,7 @@
       if (score / total >= 0.6) {
         scene.crowdUntil = performance.now() + 3000;
         sound.goal();
+        volley(performance.now(), 12, true);
       }
       renderPips();
 
@@ -1205,8 +1381,8 @@
         <li>
           <span class="ri ${r.scored ? "g" : "m"}">${r.scored ? "O" : "X"}</span>
           <span>${r.q.q}</span>
-          <span class="num">${r.guess}</span>
-          <span class="ans">${r.q.a}</span>
+          <span class="num">${show(r.guess, r.q)}</span>
+          <span class="ans">${show(r.q.a, r.q)}</span>
         </li>`).join("");
 
       panel.innerHTML = `

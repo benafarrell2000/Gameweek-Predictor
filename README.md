@@ -1,6 +1,6 @@
 # Penalty Pundit
 
-An arcade-style football quiz. Guess the answer, then take the penalty: the closer your guess, the better your chance of scoring.
+A daily football penalty shootout. Every day there are 5 new questions, the same for everyone, and each answer is a number. Guess the answer, then take the penalty: the closer your guess, the better your chance of scoring.
 
 **Play it:** https://benafarrell2000.github.io/Gameweek-Predictor/penalty-pundit.html
 
@@ -8,11 +8,21 @@ Built with Claude (Anthropic's AI assistant) in Claude Code, November 2026.
 
 ## How to play
 
-1. Press **START**. There are 5 questions, and every answer is a number.
+1. Press **START**. Today's shootout has 5 kicks that get harder as you go: **easy, easy, medium, medium, hard**.
 2. Type your guess and press **SHOOT**.
 3. The answer is revealed and the scoring-chance meter swings.
 4. A pixel-art footballer takes the penalty. It ends in one of GOAL!, SAVED!, OFF THE POST!, OVER THE BAR! or WIDE!
-5. After 5 kicks the full-time screen shows your score, a rank, and every question with your guess and the answer.
+5. After 5 kicks the full-time screen shows your score, a rank, every question with your guess, the answer and how far off you were (+2 means 2 too high, −3 means 3 too low), your stats, and a countdown to tomorrow's shootout.
+6. Your results show a **ball for every goal and an X for every miss**, coloured by how close the guess was: **green** bang on, **yellow** 1 off, **orange** 2 off, **red** 3 off, **grey** further out.
+7. Press **SHARE RESULT** to post your shootout without giving away the answers. The colour row shows how close you were, and the row underneath shows goals and misses:
+
+   ```
+   Penalty Pundit #1 3/5
+   🟩🟨🟧🟥⬛
+   ⚽❌⚽⚽❌
+   ```
+
+You get one go a day. Each kick is saved the moment you shoot, so refreshing the page won't let you re-take a penalty.
 
 How close you are decides your chance of scoring:
 
@@ -29,23 +39,26 @@ A perfect quiz always scores 5/5, but being a little off can still score. The ai
 ## How it works
 
 - **One file, no build step.** It's all in `penalty-pundit.html`: plain HTML, CSS and JavaScript, plus two Google Fonts.
-- **Graphics.** The street, goal, keeper and big-headed striker (jeans and a white TRUDY 9 tee) are drawn on a 320×180 pixel canvas and scaled up.
-- **Street football special.** The penalty is taken in the street outside The Timberyard pub, past a 281 bus, a white bulldog, old boys with pints, a bloke on the fruit machine and nine lads playing pool in the window.
+- **Graphics.** A night stadium with a London skyline, a bouncing crowd, a goal, a keeper and a big-headed #10, all drawn on a 320×180 pixel canvas and scaled up.
+- **Daily questions.** The questions are listed by difficulty (`EASY`, `MEDIUM`, `HARD`) at the top of the script. Starting from `DAILY_START`, each day takes the next 2 easy, 2 medium and 1 hard, so a week needs 14 easy, 14 medium and 7 hard. The day is the player's own calendar date, and a new shootout appears at midnight.
+- **Stats.** Games played, average score, current streak and best streak are worked out from the shootouts saved in your browser.
 - **Sound.** Every sound effect is made in the browser with the Web Audio API, with no audio files. There's a SOUND ON/OFF toggle.
 - **Fairness.** The result is decided first, with a random roll against your scoring chance. The meter and the penalty animation are then played to match it.
 - **Easy to change.** The questions, answers and scoring bands are listed at the top of the script. Each question can have its own bands.
-- **Saved in your browser:** your best score and the sound setting.
+- **Saved in your browser:** each day's kicks and the sound setting.
+- **Special editions.** One-off themed versions live in `editions/`. For example, [the Timberyard street football special](https://benafarrell2000.github.io/Gameweek-Predictor/editions/timberyard.html) moves the penalty to a street in Twickenham.
 
 ## Run it locally
 
-Download `penalty-pundit.html` and open it in a browser. That's all it needs.
+Download `penalty-pundit.html` and open it in a browser. That's all it needs. To try a particular day, add `?day=2026-11-10` to the end of the address. This only works on your own computer, not on the live site.
 
 ## How AI was used
 
 1. **The brief.** I described the game I wanted: 10 number questions, a penalty after each one, and scoring chances based on how close the guess is. Claude designed and built the whole game from that, including the pixel art, the animation and the sound.
 2. **Testing.** Claude played full games in a browser to check every part worked: the meter, goals, saves, misses, the full-time screen and the phone layout.
-3. **My changes.** I set the final 5 questions and their answers, chose the scoring bands, changed the wording, and had my name taken off the game.
-4. **Memory.** Claude kept `MEMORY.md.txt` up to date after every step, so the work could carry on across sessions. The game was even handed from one Claude session to another.
+3. **My changes.** I set the questions and their answers, chose the scoring bands, changed the wording, and had my name taken off the game.
+4. **Going daily.** I decided to turn it into a daily game, with one shootout a day getting harder kick by kick. Claude added the daily schedule, the one-go-a-day rule, the share line, the streaks and the countdown, and tested them by pretending to be different days.
+5. **Memory.** Claude kept `MEMORY.md.txt` up to date after every step, so the work could carry on across sessions. The game was even handed from one Claude session to another.
 
 ---
 
@@ -74,7 +87,7 @@ A phone-first website for predicting the score of each Premier League match in a
 
 | Path | What it is |
 | --- | --- |
-| `penalty-pundit.html` | Penalty Pundit: the whole game in one file (the latest edition). |
+| `penalty-pundit.html` | Penalty Pundit: the whole daily game in one file. |
 | `editions/` | Saved past editions of Penalty Pundit, each playable on its own, e.g. `editions/timberyard.html`. |
 | `index.html` | Gameweek Predictor as a standalone page, served by GitHub Pages. |
 | `mockup/index.html` | Gameweek Predictor as published on claude.ai. |
@@ -84,5 +97,5 @@ A phone-first website for predicting the score of each Premier League match in a
 
 ## Next steps
 
-- **Penalty Pundit:** add more questions, with a new random set each game.
+- **Penalty Pundit:** keep the daily questions coming a week at a time, and add an archive so people can play past days.
 - **Gameweek Predictor:** load fixtures from a data API instead of hard-coding each gameweek, and add friends as players.

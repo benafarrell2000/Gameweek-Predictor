@@ -29,8 +29,8 @@ A perfect quiz always scores 5/5, but being a little off can still score. The ai
 ## How it works
 
 - **One file, no build step.** It's all in `penalty-pundit.html`: plain HTML, CSS and JavaScript, plus two Google Fonts.
-- **Graphics.** The stadium, crowd, goal, keeper and big-headed striker (TRUDY 9) are drawn on a 320×180 pixel canvas and scaled up.
-- **Fireworks special.** Rockets burst over the London skyline all game, and every goal sets off a volley with bangs and crackles.
+- **Graphics.** The street, goal, keeper and big-headed striker (jeans and a white TRUDY 9 tee) are drawn on a 320×180 pixel canvas and scaled up.
+- **Street football special.** The penalty is taken in the street outside The Timberyard pub, past a 281 bus, a white bulldog, old boys with pints, a bloke on the fruit machine and nine lads playing pool in the window.
 - **Sound.** Every sound effect is made in the browser with the Web Audio API, with no audio files. There's a SOUND ON/OFF toggle.
 - **Fairness.** The result is decided first, with a random roll against your scoring chance. The meter and the penalty animation are then played to match it.
 - **Easy to change.** The questions, answers and scoring bands are listed at the top of the script. Each question can have its own bands.

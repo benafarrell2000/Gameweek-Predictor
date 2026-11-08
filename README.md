@@ -74,7 +74,8 @@ A phone-first website for predicting the score of each Premier League match in a
 
 | Path | What it is |
 | --- | --- |
-| `penalty-pundit.html` | Penalty Pundit: the whole game in one file. |
+| `penalty-pundit.html` | Penalty Pundit: the whole game in one file (the latest edition). |
+| `editions/` | Saved past editions of Penalty Pundit, each playable on its own, e.g. `editions/timberyard.html`. |
 | `index.html` | Gameweek Predictor as a standalone page, served by GitHub Pages. |
 | `mockup/index.html` | Gameweek Predictor as published on claude.ai. |
 | `docs/PRD.md` | The Gameweek Predictor product requirements document. |

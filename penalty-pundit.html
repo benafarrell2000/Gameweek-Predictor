@@ -1659,7 +1659,9 @@
       panel.innerHTML = `
         <h1 class="title">PENALTY PUNDIT</h1>
         <p class="daily">DAILY SHOOTOUT #${today.number} &middot; ${prettyDate(today.iso)}</p>
-        ${theme === "azteca" ? `<p class="theme-line"><b>RIDGEWAY ROVERS, 2003</b> &middot; HARRY KANE<br>KICK 5: <b>ESTADIO AZTECA, 2026</b> &middot; 59:34 &middot; MEX 1-2 ENG <span class="rc" aria-label="England down to 10 men"></span></p>` : ""}
+        ${theme === "azteca" ? (game.index >= STORY_PARK_KICKS
+          ? `<p class="theme-line"><b>ESTADIO AZTECA, 2026</b> &middot; 59:34 &middot; MEX 1-2 ENG <span class="rc" aria-label="England down to 10 men"></span></p>`
+          : `<p class="theme-line"><b>RIDGEWAY ROVERS, 2003</b> &middot; HARRY KANE</p>`) : ""}
         <p class="tag">Guess the Answer. Take the penalty.</p>
         <div class="rules">${bandsHtml()}</div>
         <p class="levels">${KICKS.map(lvl).join(" ")}</p>

@@ -46,6 +46,7 @@ A perfect quiz always scores 5/5, but being a little off can still score. The ai
 - **Fairness.** The result is decided first, with a random roll against your scoring chance. The meter and the penalty animation are then played to match it.
 - **Easy to change.** The questions, answers and scoring bands are listed at the top of the script. Each question can have its own bands.
 - **Saved in your browser:** each day's kicks and the sound setting.
+- **Themed days.** `THEME_DAYS` at the top of the script gives a day its own look; only the scene changes, never the questions or rules. Friday 13 – Sunday 15 November 2026 is a **Harry Kane story**. Kicks 1–4 are young Kane at **Ridgeway Rovers, 2003**, taking penalties in his local park with parents and a dog on the touchline. After kick 4, a "fast forward" time-jump (the park breaks into pixels while the year spins from 2003 to 2026) takes you to the **Estadio Azteca, 2026**: World Cup round of 16, 59:34, Mexico 1-2 England, England down to 10 men, and kick 5 is Kane's penalty to make it 1-3.
 - **Special editions.** One-off themed versions live in `editions/`. For example, [the Timberyard street football special](https://benafarrell2000.github.io/Gameweek-Predictor/editions/timberyard.html) moves the penalty to a street in Twickenham.
 
 ## Run it locally

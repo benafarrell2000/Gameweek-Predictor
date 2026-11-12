@@ -173,6 +173,23 @@
       letter-spacing: 2px;
       line-height: 1.3;
     }
+    /* theme "azteca": England white and red instead of light blue */
+    body.theme-azteca { --blue: #f4f6fa; --blue-deep: #cf142b; }
+    body.theme-azteca .cabinet {
+      border-color: #f4f6fa;
+      box-shadow: 0 0 0 4px var(--bg), 0 0 36px rgba(207, 20, 43, 0.32), inset 0 0 40px rgba(0, 0, 0, 0.4);
+    }
+    body.theme-azteca .title, body.theme-azteca .final { color: #f4f6fa; text-shadow: 3px 3px 0 #cf142b, 0 0 18px rgba(255, 255, 255, 0.2); }
+    .theme-line {
+      font-family: var(--pixel);
+      font-size: 9px;
+      line-height: 1.9;
+      color: var(--muted);
+      margin: 10px 0 0;
+    }
+    .theme-line b { color: #f4f6fa; font-weight: normal; }
+    .theme-line .rc { display: inline-block; width: 6px; height: 9px; background: #e0242f; vertical-align: -1px; margin: 0 2px; }
+
     /* daily shootout */
     .daily {
       font-family: var(--pixel);
@@ -453,6 +470,13 @@
     //   fact       shown after the penalty
     //   bands      optional: this question's own scoring bands
     const DAILY_START = "2026-11-09";
+
+    // Looks: which days use a special theme. Days not listed use the classic
+    // night stadium. Only the look changes, never the questions or rules.
+    //   "azteca" = England at the Estadio Azteca, World Cup 2026 round of 16:
+    //              59:34, MEX 1-2 ENG, England down to 10 men, Kane's penalty.
+    const THEME_DAYS = { "2026-11-13": "azteca", "2026-11-14": "azteca", "2026-11-15": "azteca" };
+    let theme = "classic";
     // Week 1: Mon 9 - Sun 15 November 2026 (Ben's questions, in his order).
     const EASY = [
       { q: "How many Ballon d'Ors has Lionel Messi won?", a: 8, unit: "Ballon d'Or", unitPlural: "Ballon d'Ors" },
@@ -491,7 +515,7 @@
       { q: "How many times did Gareth Southgate play for England?", a: 57, unit: "cap" },
       { q: "In what year were Aston Villa founded?", a: 1874, unit: "year" },
       { q: "How many red cards did Roy Keane receive in his career?", a: 13, unit: "red card" },
-      { q: "How many appearances did Ryan Giggs make for Manchester United?", a: 963, unit: "appearance" },
+      { q: "How many Premier League appearances has Harry Kane made?", a: 320, unit: "appearance" },
       { q: "How many goals did Marouane Fellaini score in the Premier League?", a: 37, unit: "goal" },
       { q: "How many days older than Lionel Messi is Cristiano Ronaldo?", a: 869, unit: "day" },
     ];
@@ -641,6 +665,16 @@
         s.connect(f).connect(g).connect(c.destination);
         s.start(t);
         s.stop(t + dur + 0.02);
+      },
+      whoosh() {
+        // time-jump: a falling sweep with rushing air
+        this.tone(900, 0.9, { type: "sawtooth", vol: 0.03, slideTo: 60 });
+        this.noise(1.1, { vol: 0.08, freq: 1400 });
+      },
+      roar() {
+        // a big stadium crowd
+        this.noise(1.8, { vol: 0.14, freq: 700 });
+        this.noise(1.4, { vol: 0.06, freq: 1800, delay: 0.1 });
       },
       whistle() {
         this.tone(2100, 0.12, { vol: 0.035 });
@@ -813,6 +847,287 @@
       R(159, 149, 3, 2, line);
     }
 
+    // =====================================================================
+    //  THEME "azteca": England at the Estadio Azteca, World Cup 2026, R16.
+    //  59:34, MEX 1-2 ENG, England down to 10 men (Quansah red, 54').
+    //  Every kick is Kane's 60th-minute penalty to make it 1-3.
+    // =====================================================================
+    const AZ_ENG_END = 70; // the England end is the left of the stand
+    const AZ_UPPER = [];
+    for (let y = 25; y < 47; y += 2) {
+      for (let x = (y / 2) % 2 ? 1 : 0; x < W; x += 2) {
+        const eng = x < AZ_ENG_END;
+        AZ_UPPER.push({ x, y, c: eng ? pick(["#f4f6fa", "#f4f6fa", "#cf142b", "#c9ced6"]) : pick(["#1f7a3a", "#1f7a3a", "#2a9a4a", "#145a2a", "#f4f6fa", "#c8102e"]) });
+      }
+    }
+    const AZ_FANS = [];
+    for (let row = 0; row < 6; row++) {
+      for (let x = row % 2 ? 2 : 0; x < W - 2; x += 5) {
+        const eng = x < AZ_ENG_END;
+        AZ_FANS.push({
+          x, y: 59 + row * 6, eng, skin: pick(SKINS), ph: rand(0, 6),
+          shirt: eng ? pick(["#f4f6fa", "#f4f6fa", "#cf142b", "#1b2b55"]) : pick(["#1f7a3a", "#1f7a3a", "#2a9a4a", "#145a2a", "#f4f6fa", "#c8102e"]),
+        });
+      }
+    }
+    const AZ_FLAGS = [
+      { x: 12, y: 62, eng: true, ph: 0.4 }, { x: 46, y: 70, eng: true, ph: 2.2 },
+      { x: 92, y: 64, eng: false, ph: 1.1 }, { x: 146, y: 60, eng: false, ph: 3.3 },
+      { x: 236, y: 66, eng: false, ph: 0.8 }, { x: 288, y: 61, eng: false, ph: 2.7 },
+    ];
+    const AZ_CLOUDS = [[20, 3, 40, 3], [96, 6, 52, 3], [190, 2, 36, 2], [252, 7, 44, 3]];
+
+    function drawAztecaFlag(f, now) {
+      R(f.x, f.y, 1, 14, "#8a8f99"); // pole
+      for (let i = 0; i < 12; i++) {
+        const wave = Math.round(Math.sin(now / 180 + f.ph + i * 0.6) * 1.2);
+        let c;
+        if (f.eng) c = i === 5 || i === 6 ? "#cf142b" : "#f4f6fa";
+        else c = i < 4 ? "#1f7a3a" : i < 8 ? "#f4f6fa" : "#c8102e";
+        R(f.x + 1 + i, f.y + wave, 1, 7, c);
+        if (f.eng) R(f.x + 1 + i, f.y + 3 + wave, 1, 1, "#cf142b"); // St George's cross
+        else if (i === 5 || i === 6) R(f.x + 1 + i, f.y + 3 + wave, 1, 1, "#7a5a2a"); // emblem
+      }
+    }
+
+    function drawAztecaScreen() {
+      const x0 = 206, y0 = 26, w = 104, h = 21;
+      R(x0 - 1, y0 - 1, w + 2, h + 2, "#3a3f48");
+      R(x0, y0, w, h, "#05070b");
+      const eng = scene.engScored ? 3 : 2;
+      ctx.font = '8px "Press Start 2P"';
+      ctx.textBaseline = "top";
+      const line = `MEX 1-${eng} ENG`;
+      const lw = ctx.measureText(line).width;
+      const lx = Math.round(x0 + (w - lw) / 2);
+      ctx.fillStyle = scene.engScored ? "#f2c94c" : "#f4f6fa";
+      ctx.fillText(line, lx, y0 + 2);
+      // clock, and a red card under ENG for Quansah (54')
+      ctx.fillStyle = "#f2c94c";
+      ctx.fillText("59:34", x0 + 8, y0 + 12);
+      const engX = lx + ctx.measureText("MEX 1-2 ").width;
+      R(engX + 6, y0 + 12, 5, 7, "#e0242f");
+      R(engX + 6, y0 + 12, 5, 1, "#ff6b6b");
+    }
+
+    function drawAzteca(now) {
+      const engJump = now < scene.crowdUntil;   // England goal
+      const mexJump = now < (scene.mexUntil || 0); // Kane misses
+
+      // night sky over Mexico City
+      ["#04070d", "#060b14", "#08101c", "#0a1524"].forEach((c, i) => R(0, i * 4, W, 4, c));
+      ctx.fillStyle = "rgba(70,80,100,0.35)";
+      for (const [x, y, w, h] of AZ_CLOUDS) ctx.fillRect(x, y, w, h);
+
+      // the huge roof canopy and its ring of lights
+      R(0, 15, W, 6, "#12161d");
+      R(0, 20, W, 1, "#2a303a");
+      const glow = ctx.createLinearGradient(0, 21, 0, 40);
+      glow.addColorStop(0, "rgba(255,248,220,0.22)");
+      glow.addColorStop(1, "rgba(255,248,220,0)");
+      ctx.fillStyle = glow;
+      ctx.fillRect(0, 21, W, 19);
+      for (let x = 3; x < W; x += 7) { R(x, 20, 3, 2, "#fffbe6"); R(x + 1, 22, 1, 1, "#fff2b0"); }
+
+      // upper tier: a wall of fans
+      R(0, 22, W, 26, "#141b26");
+      for (const d of AZ_UPPER) {
+        const hop = (engJump && d.x < AZ_ENG_END) || (mexJump && d.x >= AZ_ENG_END) ? (Math.sin(now / 90 + d.x) > 0 ? -1 : 0) : 0;
+        R(d.x, d.y + hop, 1, 1, d.c);
+      }
+      drawAztecaScreen();
+
+      // tier divider with the stadium name
+      R(0, 48, W, 6, "#2b3340");
+      R(0, 48, W, 1, "#3f4857");
+      ctx.font = '8px "Press Start 2P"';
+      ctx.textBaseline = "top";
+      ctx.fillStyle = "#c8102e";
+      ctx.fillText("ESTADIO AZTECA", 92, 47);
+
+      // lower tier
+      R(0, 54, W, 40, "#0e1520");
+      for (const f of AZ_FANS) {
+        const jumping = (engJump && f.eng) || (mexJump && !f.eng);
+        let dy = 0;
+        if (jumping) dy = Math.sin(now / 90 + f.ph) > 0 ? -2 : 0;
+        else if (Math.sin(now / 700 + f.ph) > 0.93) dy = -1;
+        R(f.x, f.y + 2 + dy, 3, 3, f.shirt);
+        R(f.x, f.y + dy, 2, 2, f.skin);
+        if (jumping) { R(f.x - 1, f.y - 1 + dy, 1, 2, f.skin); R(f.x + 3, f.y - 1 + dy, 1, 2, f.skin); }
+      }
+      for (const f of AZ_FLAGS) drawAztecaFlag(f, now);
+
+      // advertising boards
+      R(0, 94, W, 10, "#06101a");
+      R(0, 94, W, 1, "#c8102e");
+      ctx.font = '8px "Press Start 2P"';
+      const msg = engJump ? "GOAL!  KANE!  1-3  " : "ESTADIO AZTECA  *  MEXICO CITY  *  ROUND OF 16  *  PENALTY PUNDIT  *  ";
+      ctx.fillStyle = engJump ? (Math.floor(now / 150) % 2 ? "#f2c94c" : "#ffffff") : "#f4f6fa";
+      const mw = Math.max(1, ctx.measureText(msg).width);
+      const off = (now / (engJump ? 12 : 30)) % mw;
+      for (let x = -off; x < W; x += mw) ctx.fillText(msg, Math.round(x), 95);
+    }
+
+    // =====================================================================
+    //  STORY for the "azteca" theme: kicks 1-4 are young Harry Kane at
+    //  Ridgeway Rovers in 2003, in the park; after kick 4 a time-jump takes
+    //  you to the Azteca in 2026 for kick 5.
+    // =====================================================================
+    const STORY_PARK_KICKS = 4; // kicks 1-4 in the park, kick 5 at the Azteca
+    let drawStage = "classic";  // which scene is being drawn this frame
+
+    // Which scene to show right now.
+    function stageNow(now) {
+      if (theme !== "azteca") return "classic";
+      if (scene.transition) return now - scene.transition.t0 < TRANS.SWITCH ? "park" : "azteca";
+      if (screen === "end") return "azteca";
+      return game.index >= STORY_PARK_KICKS ? "azteca" : "park";
+    }
+
+    // --- the park (Ridgeway Rovers, 2003) ---
+    const PARK_TOWERS = [[6, 14, 16, 26], [150, 4, 22, 36], [176, 9, 17, 31], [196, 2, 23, 38], [228, 7, 20, 33], [282, 12, 18, 28]];
+    const PARK_HOUSES = Array.from({ length: 64 }, (_, i) => ({ x: i * 5, h: randInt(3, 6), roof: pick(["#9a5a44", "#8a4c3a", "#a8684e", "#7f8790"]) }));
+    const PARK_TREES = Array.from({ length: 48 }, (_, i) => ({ x: i * 7 + randInt(-2, 2), r: randInt(5, 8), c: pick(["#2f5a2c", "#355f2e", "#2a5228"]) }));
+    const PARK_FAR_GOALS = [[24, 61], [128, 58], [252, 63], [70, 78], [206, 80]];
+    const PARK_FAR_PLAYERS = Array.from({ length: 30 }, () => ({ x: randInt(4, 314), y: randInt(60, 92), c: pick(["#c8102e", "#1f4fa8", "#f4f6fa", "#f2c94c", "#222", "#7a2a6a"]), ph: rand(0, 6) }));
+    const PARENTS = [
+      { x: 14, coat: "#2f3b55", legs: "#3d3d3d", hair: "#3b2a1a", skin: "#f1c9a0", ph: 0.2 },
+      { x: 30, coat: "#8a2f3a", legs: "#2b3a5a", hair: "#c9a06a", skin: "#e8b98a", ph: 1.4 },
+      { x: 46, coat: "#4e5e3a", legs: "#3d3d3d", hair: "#6b4428", skin: "#d9a477", ph: 2.9, kid: true },
+      { x: 62, coat: "#c9ced6", legs: "#2b3a5a", hair: "#1a1410", skin: "#c68642", ph: 0.8 },
+      { x: 238, coat: "#1f4fa8", legs: "#3d3d3d", hair: "#8a6a45", skin: "#f1c9a0", ph: 2.1 },
+      { x: 256, coat: "#f2c94c", legs: "#2b3a5a", hair: "#3b2a1a", skin: "#e8b98a", ph: 3.6 },
+      { x: 274, coat: "#5a3a6a", legs: "#3d3d3d", hair: "#b0b0b0", skin: "#f1c9a0", ph: 4.4 },
+      { x: 296, coat: "#2e2e2e", legs: "#2b3a5a", hair: "#6b4428", skin: "#d9a477", ph: 5.2 },
+    ];
+
+    function drawParent(p, now, cheer) {
+      const fy = 111, s = p.kid ? 6 : 0; // a younger sibling is shorter
+      const hop = cheer ? (Math.sin(now / 110 + p.ph) > 0 ? -2 : 0) : 0;
+      const y = fy + hop;
+      R(p.x - 3, y - 2, 2, 2, "#222"); R(p.x + 1, y - 2, 2, 2, "#222");
+      R(p.x - 3, y - 9 + s, 6, 7 - s, p.legs);
+      R(p.x - 4, y - 19 + s, 8, 10, p.coat);
+      R(p.x - 2, y - 25 + s, 5, 6, p.skin);
+      R(p.x - 2, y - 26 + s, 5, 2, p.hair);
+      if (cheer) { R(p.x - 6, y - 26 + s, 2, 8, p.coat); R(p.x + 4, y - 26 + s, 2, 8, p.coat); }
+      else { R(p.x - 6, y - 18 + s, 2, 7, p.coat); R(p.x + 4, y - 18 + s, 2, 7, p.coat); }
+    }
+
+    function drawDog(x, now, happy) {
+      const bounce = happy ? (Math.floor(now / 120) % 2) * 2 : 0;
+      const y = 111 - bounce;
+      const wag = Math.floor(now / (happy ? 80 : 300)) % 2;
+      R(x - 5, y - 6, 10, 4, "#f4efe6");        // body
+      R(x - 2, y - 6, 4, 2, "#8a5a32");         // brown patch
+      R(x - 5, y - 2, 2, 2, "#f4efe6"); R(x + 3, y - 2, 2, 2, "#f4efe6"); // legs
+      R(x + 4, y - 10, 5, 5, "#f4efe6");        // head
+      R(x + 4, y - 10, 2, 4, "#8a5a32");        // ear
+      R(x + 8, y - 8, 1, 1, "#222");            // nose
+      R(x - 7, y - 8 + wag, 2, 2, "#f4efe6");   // wagging tail
+      if (happy) R(x + 7, y - 6, 2, 2, "#e77a8a"); // tongue out
+    }
+
+    function drawPark(now) {
+      const cheer = now < scene.crowdUntil;
+      // sunny sky
+      ["#8fc3ea", "#9dcbee", "#acd3f1", "#bcdcf3", "#cbe4f5", "#d8eaf6"].forEach((c, i) => R(0, i * 6, W, 6, c));
+      // tower blocks and rooftops on the skyline
+      for (const [x, y, w, h] of PARK_TOWERS) {
+        R(x, y, w, h, "#8d98a5");
+        R(x + w - 3, y, 3, h, "#7c8794");
+        for (let wy = y + 2; wy < y + h - 2; wy += 3) for (let wx = x + 2; wx < x + w - 3; wx += 3) R(wx, wy, 1, 1, "#b9c3cd");
+      }
+      for (const h of PARK_HOUSES) { R(h.x, 40 - h.h, 5, h.h, "#c9b8a6"); R(h.x, 40 - h.h - 1, 5, 1, h.roof); }
+      R(0, 40, W, 3, "#a49c8e");
+      // tree line
+      for (const t of PARK_TREES) { disc(t.x, 46, t.r, t.c); R(t.x - 1, 48, 2, 6, "#4a3a28"); }
+      R(0, 50, W, 6, "#2f5a2c");
+      // the other pitches stretching away
+      R(0, 56, W, 48, "#6aa346");
+      for (let y = 60; y < 104; y += 8) R(0, y, W, 4, "#629b40");
+      R(0, 70, W, 1, "#e8f2e0"); R(10, 92, W - 20, 1, "#e8f2e0"); R(160, 56, 1, 14, "#e8f2e0");
+      for (const [gx, gy] of PARK_FAR_GOALS) { R(gx, gy, 14, 1, "#ffffff"); R(gx, gy, 1, 6, "#ffffff"); R(gx + 13, gy, 1, 6, "#ffffff"); }
+      for (const p of PARK_FAR_PLAYERS) { const dx = Math.round(Math.sin(now / 900 + p.ph) * 3); R(p.x + dx, p.y, 2, 3, p.c); R(p.x + dx, p.y - 1, 2, 1, "#e8b98a"); }
+    }
+
+    // Worn grass on a well-used park pitch, then the touchline crowd in front of it.
+    function drawParkWear(now) {
+      ctx.globalAlpha = 0.55;
+      disc(160, 150, 7, "#8f8a52"); disc(154, 151, 4, "#8f8a52"); disc(167, 149, 4, "#8f8a52");
+      disc(140, 110, 3, "#8f8a52"); disc(160, 109, 5, "#8f8a52"); disc(180, 110, 3, "#8f8a52");
+      ctx.globalAlpha = 1;
+      R(159, 149, 3, 2, "#e8f5ea"); // penalty spot
+      const cheer = now < scene.crowdUntil;
+      // parents, a little brother and a dog on the touchline
+      for (const p of PARENTS) drawParent(p, now, cheer);
+      drawDog(84, now, cheer);
+      // kit bag
+      R(226, 106, 8, 5, "#1f4fa8"); R(226, 106, 8, 1, "#f4f6fa");
+    }
+
+    // --- caption cards ---
+    function setCaption(lines, ms) { scene.caption = { lines, t0: performance.now(), ms }; }
+    function drawCaption(now) {
+      const c = scene.caption;
+      if (!c) return;
+      const t = now - c.t0;
+      if (t > c.ms) { scene.caption = null; return; }
+      const a = Math.min(1, t / 300, (c.ms - t) / 500);
+      ctx.globalAlpha = Math.max(0, a) * 0.78;
+      R(0, 112, W, 26, "#05070b");
+      ctx.globalAlpha = Math.max(0, a);
+      ctx.font = '8px "Press Start 2P"';
+      ctx.textBaseline = "top";
+      c.lines.forEach((ln, i) => {
+        const w = ctx.measureText(ln).width;
+        ctx.fillStyle = i === 0 ? "#f2c94c" : "#f4f6fa";
+        ctx.fillText(ln, Math.round((W - w) / 2), 115 + i * 11);
+      });
+      ctx.globalAlpha = 1;
+    }
+    const CAPTION_PARK = ["RIDGEWAY ROVERS, 2003", "HARRY KANE"];
+    const CAPTION_AZTECA = ["ESTADIO AZTECA, 2026", "59:34  MEX 1-2 ENG"];
+
+    // --- the time-jump between kick 4 and kick 5 ---
+    const TRANS = { OUT: 900, SWITCH: 1500, IN: 2300, END: 2600 };
+    const TRANS_CELLS = (() => {
+      const cells = [];
+      for (let y = 0; y < H; y += 8) for (let x = 0; x < W; x += 8) cells.push([x, y, Math.random()]);
+      return cells.sort((a, b) => a[2] - b[2]);
+    })();
+    function playTimeJump() {
+      return new Promise((resolve) => {
+        scene.transition = { t0: performance.now(), resolve, lastYear: 2003 };
+        sound.whoosh();
+      });
+    }
+    function updateTransition(now) {
+      const tr = scene.transition;
+      if (!tr) return;
+      const t = now - tr.t0;
+      const year = Math.min(2026, 2003 + Math.floor(Math.max(0, t - 500) / 40));
+      if (year !== tr.lastYear) { tr.lastYear = year; sound.tick(); }
+      if (!tr.roared && t >= TRANS.SWITCH) { tr.roared = true; sound.roar(); }
+      if (t >= TRANS.END) { scene.transition = null; tr.resolve(); }
+    }
+    function drawTransition(now) {
+      const tr = scene.transition;
+      if (!tr) return;
+      const t = now - tr.t0;
+      let covered;
+      if (t < TRANS.OUT) covered = t / TRANS.OUT;                       // the park breaks into pixels
+      else if (t < TRANS.SWITCH) covered = 1;                             // black, counting years
+      else covered = Math.max(0, 1 - (t - TRANS.SWITCH) / (TRANS.IN - TRANS.SWITCH)); // the Azteca builds in
+      const n = Math.floor(TRANS_CELLS.length * covered);
+      for (let i = 0; i < n; i++) { const [x, y] = TRANS_CELLS[i]; R(x, y, 8, 8, "#05070b"); }
+      if (t > 300 && t < TRANS.IN) {
+        drawText("FAST FORWARD", 8, "#8fa3b8", 66);
+        drawText(String(tr.lastYear), 24, tr.lastYear === 2026 ? "#f4f6fa" : "#f2c94c", 80);
+      }
+    }
+
     function netShift(x, y) {
       const b = scene.bulge;
       if (!b || b.amp < 0.05) return [x, y];
@@ -839,9 +1154,14 @@
     }
 
     const KEEPER = { skin: "#f1c27d", hair: "#2b1d14", shirt: "#f2c94c", shirt2: "#d9ad2b", glove: "#7bd389", shorts: "#1b2838" };
+    // Azteca theme: Mexico's keeper, in green
+    const KEEPER_MEX = { skin: "#c68642", hair: "#1a1410", shirt: "#1f8a45", shirt2: "#145a2a", glove: "#f4f6fa", shorts: "#111111" };
+    // a kid keeper for the park
+    const KEEPER_KID = { skin: "#f1c9a0", hair: "#6b4428", shirt: "#f28c28", shirt2: "#d0711a", glove: "#f4f6fa", shorts: "#1b2838" };
+    const keeperKit = () => (drawStage === "park" ? KEEPER_KID : drawStage === "azteca" ? KEEPER_MEX : KEEPER);
 
     function drawKeeperStanding(x, fy) {
-      const k = KEEPER;
+      const k = keeperKit();
       R(x - 5, fy - 2, 4, 2, "#111"); R(x + 1, fy - 2, 4, 2, "#111");
       R(x - 4, fy - 6, 3, 4, "#fff"); R(x + 1, fy - 6, 3, 4, "#fff");
       R(x - 4, fy - 9, 3, 3, k.skin); R(x + 1, fy - 9, 3, 3, k.skin);
@@ -855,7 +1175,7 @@
     }
 
     function drawKeeperDiving(cx, cy, dir) {
-      const k = KEEPER;
+      const k = keeperKit();
       const D = (lx, ly, w, h, c) => R(dir > 0 ? cx + lx : cx - lx - w, cy + ly, w, h, c);
       D(-20, -1, 2, 4, "#111");
       D(-18, -1, 4, 4, "#fff");
@@ -869,9 +1189,34 @@
     }
 
     const KICKER = { skin: "#e8b98a", hair: "#3b2a1a", hairHi: "#5a4330", shirt: "#8cc4f0", shirtD: "#5f9fd0", shorts: "#f4f8fc", socks: "#1b2838", navy: "#0b1622" };
+    // Azteca theme: Harry Kane in an England-style white shirt (no crests or logos)
+    const KICKER_KANE = { skin: "#e8b98a", hair: "#8a6a45", hairHi: "#ad8a5e", shirt: "#f4f6fa", shirtD: "#d3d9e2", shorts: "#1b2b55", socks: "#f4f6fa", navy: "#1b2b55", trim: "#cf142b", name: "KANE", number: "9" };
+    // Young Kane at Ridgeway Rovers: blue-and-white halves, buzz cut (no sponsor)
+    const KICKER_KID = { skin: "#efc39a", hair: "#c9a06a", hairHi: "#dcb889", shirt: "#f4f6fa", shirtD: "#d3d9e2", halves: "#1f4fa8", shorts: "#f4f6fa", socks: "#f4f6fa", navy: "#1b2b55" };
+    const kickerKit = () => (drawStage === "park" ? KICKER_KID : drawStage === "azteca" ? KICKER_KANE : KICKER);
+
+    // Tiny pixel font for names on shirts: letters 4 rows high, digits 5; N is 4 wide.
+    const SHIRT_FONT = {
+      K: ["#.#", "##.", "#.#", "#.#"],
+      A: [".#.", "#.#", "###", "#.#"],
+      N: ["#..#", "##.#", "#.##", "#..#"],
+      E: ["###", "##.", "#..", "###"],
+      9: ["###", "#.#", "###", "..#", "###"],
+    };
+    function drawShirtText(text, x, y, color) {
+      let cx = x;
+      for (const ch of text) {
+        const rows = SHIRT_FONT[ch];
+        if (!rows) continue;
+        rows.forEach((row, ry) => {
+          [...row].forEach((px, rx) => { if (px === "#") R(cx + rx, y + ry, 1, 1, color); });
+        });
+        cx += rows[0].length + 1;
+      }
+    }
 
     function kickerLeg(xl, fy, lift) {
-      const k = KICKER;
+      const k = kickerKit();
       const bottom = fy - lift;
       const skinH = Math.max(1, bottom - 5 - (fy - 9));
       R(xl, fy - 9, 3, skinH, k.skin);
@@ -880,31 +1225,42 @@
     }
 
     function drawKicker(x, fy, pose, now) {
-      const k = KICKER;
+      const k = kickerKit();
       // legs
       if (pose === "runA") { kickerLeg(x - 5, fy, 0); kickerLeg(x + 2, fy, 3); }
       else if (pose === "runB") { kickerLeg(x - 5, fy, 3); kickerLeg(x + 2, fy, 0); }
       else if (pose === "kick") { kickerLeg(x - 5, fy, 0); kickerLeg(x + 3, fy, 7); }
       else { kickerLeg(x - 5, fy, 0); kickerLeg(x + 2, fy, 0); }
 
+      const w = k.name ? 1 : 0; // a named shirt is 2px wider so the name fits
       R(x - 6, fy - 13, 13, 5, k.shorts);
-      R(x - 7, fy - 24, 15, 11, k.shirt);
-      R(x + 6, fy - 24, 2, 11, k.shirtD);
-      // number 10
-      R(x - 4, fy - 22, 1, 5, k.navy); R(x - 5, fy - 21, 1, 1, k.navy);
-      R(x - 1, fy - 22, 4, 1, k.navy); R(x - 1, fy - 18, 4, 1, k.navy);
-      R(x - 1, fy - 22, 1, 5, k.navy); R(x + 2, fy - 22, 1, 5, k.navy);
+      R(x - 7 - w, fy - 24, 15 + 2 * w, 11, k.shirt);
+      R(x + 6 + w, fy - 24, 2, 11, k.shirtD);
+      if (k.halves) R(x, fy - 24, 8 + w, 11, k.halves); // Ridgeway Rovers halves
+      if (k.name) {
+        // name and number on the back, e.g. KANE 9
+        drawShirtText(k.name, x - 8, fy - 23, k.navy);
+        drawShirtText(k.number, x - 1, fy - 18, k.navy);
+      } else if (!k.halves) {
+        // number 10
+        R(x - 4, fy - 22, 1, 5, k.navy); R(x - 5, fy - 21, 1, 1, k.navy);
+        R(x - 1, fy - 22, 4, 1, k.navy); R(x - 1, fy - 18, 4, 1, k.navy);
+        R(x - 1, fy - 22, 1, 5, k.navy); R(x + 2, fy - 22, 1, 5, k.navy);
+      }
 
       // arms
+      const ax = x - 9 - w, bx = x + 8 + w; // arm positions
       if (pose === "celebrate") {
         const bob = Math.floor(now / 140) % 2;
-        R(x - 9, fy - 34 - bob, 2, 11, k.skin); R(x + 8, fy - 34 + bob, 2, 11, k.skin);
-        R(x - 9, fy - 24, 2, 3, k.shirt); R(x + 8, fy - 24, 2, 3, k.shirt);
+        R(ax, fy - 34 - bob, 2, 11, k.skin); R(bx, fy - 34 + bob, 2, 11, k.skin);
+        R(ax, fy - 24, 2, 3, k.shirt); R(bx, fy - 24, 2, 3, k.shirt);
       } else {
         const swing = pose === "runA" ? 2 : pose === "runB" ? -2 : pose === "kick" ? -3 : 0;
-        R(x - 9, fy - 24, 2, 3, k.shirt); R(x - 9, fy - 21 + swing, 2, 5, k.skin);
-        R(x + 8, fy - 24, 2, 3, k.shirt); R(x + 8, fy - 21 - swing, 2, 5, k.skin);
+        R(ax, fy - 24, 2, 3, k.shirt); R(ax, fy - 21 + swing, 2, 5, k.skin);
+        R(bx, fy - 24, 2, 3, k.shirt); R(bx, fy - 21 - swing, 2, 5, k.skin);
       }
+      if (k.halves) R(bx, fy - 24, 2, 3, k.halves); // blue sleeve on the blue half
+      if (k.trim) { R(ax, fy - 22, 2, 1, k.trim); R(bx, fy - 22, 2, 1, k.trim); } // red sleeve cuffs
 
       // big head (seen from behind)
       const hy = pose === "sad" ? fy - 32 : fy - 34;
@@ -942,7 +1298,7 @@
 
     // --- scene state -----------------------------------------------------
 
-    const scene = { kick: null, banner: null, confetti: [], crowdUntil: 0, bulge: null, overlay: null };
+    const scene = { kick: null, banner: null, confetti: [], crowdUntil: 0, bulge: null, overlay: null, engScored: false, mexUntil: 0 };
 
     const RUN = 850, FLIGHT = 480, ARRIVE = RUN + FLIGHT;
 
@@ -960,9 +1316,13 @@
       scene.bulge = null;
       scene.crowdUntil = 0;
       scene.confetti = [];
+      scene.engScored = false; // Azteca big screen goes back to 1-2 for the next kick
+      scene.mexUntil = 0;
+      scene.caption = null;
     }
 
     function startKick(scored) {
+      scene.caption = null; // clear the caption card for the kick itself
       const side = Math.random() < 0.5 ? -1 : 1;
       const type = scored ? "goal" : pick(["save", "save", "post", "over", "wide"]);
       let tx, ty, kDir;
@@ -988,13 +1348,17 @@
         sound.goal();
         scene.crowdUntil = now + 2600;
         scene.bulge = { x: k.tx, y: k.ty, amp: 6 };
-        const colors = ["#f2c94c", "#8cc4f0", "#ffffff", "#5fd38d", "#ff6b6b"];
+        scene.engScored = true;
+        const colors = drawStage === "azteca" ? ["#ffffff", "#cf142b", "#ffffff", "#1b2b55", "#f2c94c"]
+          : drawStage === "park" ? ["#1f4fa8", "#ffffff", "#1f4fa8", "#f2c94c"]
+          : ["#f2c94c", "#8cc4f0", "#ffffff", "#5fd38d", "#ff6b6b"];
         for (let i = 0; i < 90; i++) {
           scene.confetti.push({ x: rand(20, 300), y: rand(-30, 0), vx: rand(-0.03, 0.03), vy: rand(0.02, 0.07), c: pick(colors), life: rand(1800, 2800) });
         }
       } else if (k.type === "post") sound.post();
       else if (k.type === "save") sound.save();
       else sound.miss();
+      if (k.type !== "goal") scene.mexUntil = now + 2200; // the home crowd celebrates a Kane miss
     }
 
     // positions for the current frame
@@ -1082,6 +1446,7 @@
         if (!k.arrived && t >= ARRIVE + 60) { k.arrived = true; onArrive(k, now); }
         if (!k.resolved && t >= ARRIVE + 700) { k.resolved = true; k.resolve(); }
       }
+      updateTransition(now);
       if (scene.bulge) scene.bulge.amp *= Math.pow(0.992, dt);
       scene.confetti = scene.confetti.filter((p) => (p.life -= dt) > 0 && p.y < H + 4);
       for (const p of scene.confetti) {
@@ -1091,10 +1456,18 @@
     }
 
     function draw(now) {
-      drawBackground(now);
-      drawStand(now);
-      drawBoards(now);
+      drawStage = stageNow(now);
+      if (drawStage === "azteca") {
+        drawAzteca(now);
+      } else if (drawStage === "park") {
+        drawPark(now);
+      } else {
+        drawBackground(now);
+        drawStand(now);
+        drawBoards(now);
+      }
       drawPitch();
+      if (drawStage === "park") drawParkWear(now);
       drawGoal();
 
       const L = layout(now);
@@ -1115,11 +1488,16 @@
         const size = b.text.length > 8 ? 16 : 24;
         const color = b.text === "GOAL!" && Math.floor(now / 150) % 2 ? "#ffffff" : b.color;
         const age = now - b.t0;
-        const y = age < 200 ? Math.round(lerp(-30, 22, easeOut(age / 200))) : 22;
+        // On the Azteca the big screen sits where banners normally go, so banners use the sky.
+        const top = drawStage === "azteca" ? (size === 24 ? 0 : 3) : 22;
+        const y = age < 200 ? Math.round(lerp(-30, top, easeOut(age / 200))) : top;
         drawText(b.text, size, color, y);
       } else if (scene.overlay && Math.floor(now / 600) % 2 === 0) {
-        drawText(scene.overlay, 16, "#f2c94c", 22);
+        drawText(scene.overlay, 16, "#f2c94c", drawStage === "azteca" ? 3 : 22);
       }
+
+      drawCaption(now);
+      drawTransition(now);
     }
 
     let last = performance.now();
@@ -1243,6 +1621,8 @@
     // ---- screens
     function boot() {
       bootedOn = todayIso();
+      theme = THEME_DAYS[bootedOn] || "classic";
+      document.body.classList.toggle("theme-azteca", theme === "azteca");
       today = shootoutFor(bootedOn);
       resetScene();
       if (!today) { showNoShootout(); return; }
@@ -1279,6 +1659,7 @@
       panel.innerHTML = `
         <h1 class="title">PENALTY PUNDIT</h1>
         <p class="daily">DAILY SHOOTOUT #${today.number} &middot; ${prettyDate(today.iso)}</p>
+        ${theme === "azteca" ? `<p class="theme-line"><b>RIDGEWAY ROVERS, 2003</b> &middot; HARRY KANE<br>KICK 5: <b>ESTADIO AZTECA, 2026</b> &middot; 59:34 &middot; MEX 1-2 ENG <span class="rc" aria-label="England down to 10 men"></span></p>` : ""}
         <p class="tag">Guess the Answer. Take the penalty.</p>
         <div class="rules">${bandsHtml()}</div>
         <p class="levels">${KICKS.map(lvl).join(" ")}</p>
@@ -1286,6 +1667,7 @@
         <div><button class="btn" id="startBtn" type="button">${resuming ? `CARRY ON: KICK ${game.index + 1}` : "START"}</button></div>
       `;
       $("#startBtn").addEventListener("click", startGame);
+      if (theme === "azteca") setCaption(game.index >= STORY_PARK_KICKS ? CAPTION_AZTECA : CAPTION_PARK, Infinity);
       renderPips();
     }
 
@@ -1302,8 +1684,16 @@
       scene.overlay = null;
       renderPips();
       const q = today.questions[game.index];
+      const story = theme === "azteca"
+        ? (game.index < STORY_PARK_KICKS
+          ? `<p class="theme-line"><b>RIDGEWAY ROVERS, 2003</b> &middot; HARRY KANE</p>`
+          : `<p class="theme-line"><b>ESTADIO AZTECA, 2026</b> &middot; 59:34 &middot; MEX 1-2 ENG <span class="rc" aria-label="England down to 10 men"></span></p>`)
+        : "";
+      if (theme === "azteca" && game.index === 0) setCaption(CAPTION_PARK, 3500);
+      if (theme === "azteca" && game.index === STORY_PARK_KICKS) setCaption(CAPTION_AZTECA, 4000);
       panel.innerHTML = `
         <p class="meta">KICK ${game.index + 1} OF ${KICKS.length} &middot; ${lvl(q.level)}</p>
+        ${story}
         <p class="q">${q.q}</p>
         <form id="guessForm" autocomplete="off" novalidate>
           <div class="row">
@@ -1407,7 +1797,12 @@
         next.disabled = true;
         game.index++;
         if (game.index >= KICKS.length) showEnd(true);
-        else showQuestion();
+        else if (theme === "azteca" && game.index === STORY_PARK_KICKS) {
+          // Story mode: fast-forward from the park in 2003 to the Azteca in 2026.
+          resetScene();
+          panel.innerHTML = `<p class="meta">FAST FORWARD</p><p class="q">2003 &rarr; 2026</p>`;
+          playTimeJump().then(showQuestion);
+        } else showQuestion();
       });
       next.focus({ preventScroll: true });
     }

@@ -173,6 +173,14 @@
       letter-spacing: 2px;
       line-height: 1.3;
     }
+    /* theme "favela": Brazil yellow and green */
+    body.theme-favela { --blue: #f7d117; --blue-deep: #1f8a45; }
+    body.theme-favela .cabinet {
+      border-color: #f7d117;
+      box-shadow: 0 0 0 4px var(--bg), 0 0 36px rgba(31, 138, 69, 0.35), inset 0 0 40px rgba(0, 0, 0, 0.4);
+    }
+    body.theme-favela .title, body.theme-favela .final { color: #f7d117; text-shadow: 3px 3px 0 #1f8a45, 0 0 18px rgba(247, 209, 23, 0.25); }
+
     /* theme "azteca": England white and red instead of light blue */
     body.theme-azteca { --blue: #f4f6fa; --blue-deep: #cf142b; }
     body.theme-azteca .cabinet {
@@ -475,7 +483,13 @@
     // night stadium. Only the look changes, never the questions or rules.
     //   "azteca" = England at the Estadio Azteca, World Cup 2026 round of 16:
     //              59:34, MEX 1-2 ENG, England down to 10 men, Kane's penalty.
-    const THEME_DAYS = { "2026-11-13": "azteca", "2026-11-14": "azteca", "2026-11-15": "azteca" };
+    //   "favela" = a concrete community court in a Rio favela at dusk; a kid in a
+    //              Brazil shirt with 10 on the back takes the penalties.
+    const THEME_DAYS = {
+      "2026-11-13": "azteca", "2026-11-14": "azteca", "2026-11-15": "azteca",
+      "2026-11-16": "favela", "2026-11-17": "favela", "2026-11-18": "favela", "2026-11-19": "favela",
+      "2026-11-20": "favela", "2026-11-21": "favela", "2026-11-22": "favela",
+    };
     let theme = "classic";
     // Week 1: Mon 9 - Sun 15 November 2026 (Ben's questions, in his order).
     const EASY = [
@@ -493,6 +507,21 @@
       { q: "In which year did Birmingham City win the Carling Cup?", a: 2011, unit: "year" },
       { q: "How many different countries have won the World Cup?", a: 8, unit: "country", unitPlural: "countries" },
       { q: "In which year did Manchester United win their last Premier League title?", a: 2013, unit: "year" },
+      // Week 2: Mon 16 - Sun 22 November 2026 (drafted by Claude, every answer source-checked, approved by Ben)
+      { q: "In what year did England win the World Cup?", a: 1966, unit: "year" },
+      { q: "In what year did Leicester City win the Premier League?", a: 2016, unit: "year" },
+      { q: "How many men's World Cups have Brazil won?", a: 5, unit: "World Cup" },
+      { q: "In what year did Liverpool win the Champions League final in Istanbul?", a: 2005, unit: "year" },
+      { q: "What shirt number did David Beckham wear for most of his England career?", a: 7, unit: "" },
+      { q: "In what year did the first Premier League season kick off?", a: 1992, unit: "year" },
+      { q: "How many men's World Cups have Spain won?", a: 2, unit: "World Cup" },
+      { q: "In what year did Manchester United win the Treble?", a: 1999, unit: "year" },
+      { q: "How many Premier League titles have Chelsea won?", a: 5, unit: "title" },
+      { q: "In what year did the new Wembley Stadium open?", a: 2007, unit: "year" },
+      { q: "How many Premier League titles have Arsenal won?", a: 4, unit: "title" },
+      { q: "How many goals did Geoff Hurst score in the 1966 World Cup final?", a: 3, unit: "goal" },
+      { q: "How many men's World Cups have Italy won?", a: 4, unit: "World Cup" },
+      { q: "How many league games in a row did Arsenal go unbeaten in the run that ended in October 2004?", a: 49, unit: "game" },
     ];
     const MEDIUM = [
       { q: "What number does Phil Foden wear for Manchester City?", a: 47, unit: "" },
@@ -509,6 +538,21 @@
       { q: "In what year did Karim Benzema win the Ballon d'Or?", a: 2022, unit: "year" },
       { q: "How many appearances did Steve Bruce make for England?", a: 0, unit: "appearance" },
       { q: "In what year did Blackpool get relegated from the Premier League?", a: 2011, unit: "year" },
+      // Week 2
+      { q: "How many points did Manchester City finish with in 2017-18?", a: 100, unit: "point" },
+      { q: "In what year did Arsène Wenger become Arsenal manager?", a: 1996, unit: "year" },
+      { q: "How many Premier League goals did Thierry Henry score?", a: 175, unit: "goal" },
+      { q: "In what year did England men last reach the final of a European Championship?", a: 2024, unit: "year" },
+      { q: "How many Premier League goals did Alan Shearer score?", a: 260, unit: "goal" },
+      { q: "How many Premier League titles did Steven Gerrard win as a player?", a: 0, unit: "title" },
+      { q: "How many points did Arsenal finish with in their unbeaten 2003-04 season?", a: 90, unit: "point" },
+      { q: "How many World Cup goals did Miroslav Klose score?", a: 16, unit: "goal" },
+      { q: "How many England caps did Wayne Rooney win?", a: 120, unit: "cap" },
+      { q: "How many goals did Gary Lineker score at the 1986 World Cup?", a: 6, unit: "goal" },
+      { q: "How many points did Chelsea finish with in 2004-05?", a: 95, unit: "point" },
+      { q: "How many Premier League goals did Mohamed Salah score in 2017-18?", a: 32, unit: "goal" },
+      { q: "How many Ballon d'Ors has Cristiano Ronaldo won?", a: 5, unit: "Ballon d'Or", unitPlural: "Ballon d'Ors" },
+      { q: "How many points did Derby County finish with in the 2007-08 Premier League season?", a: 11, unit: "point" },
     ];
     const HARD = [
       { q: "How many clubs has Hulk played for during his career?", a: 9, unit: "club" },
@@ -518,6 +562,14 @@
       { q: "How many Premier League appearances has Harry Kane made?", a: 320, unit: "appearance" },
       { q: "How many goals did Marouane Fellaini score in the Premier League?", a: 37, unit: "goal" },
       { q: "How many days older than Lionel Messi is Cristiano Ronaldo?", a: 869, unit: "day" },
+      // Week 2
+      { q: "How many Premier League goals did Yakubu score?", a: 95, unit: "goal" },
+      { q: "How many England caps did Peter Shilton win?", a: 125, unit: "cap" },
+      { q: "How many goals did Just Fontaine score at the 1958 World Cup?", a: 13, unit: "goal" },
+      { q: "How many Premier League goals did Ryan Giggs score?", a: 109, unit: "goal" },
+      { q: "How many goals did Jimmy Greaves score in the English First Division?", a: 357, unit: "goal" },
+      { q: "How many Premier League appearances did Gareth Barry make?", a: 653, unit: "appearance" },
+      { q: "How many Premier League appearances did Frank Lampard make?", a: 609, unit: "appearance" },
     ];
 
     const KICKS = ["easy", "easy", "medium", "medium", "hard"];
@@ -540,6 +592,8 @@
     // end of the address to pretend it's that day. Ignored on the live site.
     const LOCAL = location.protocol === "file:" || ["localhost", "127.0.0.1"].includes(location.hostname);
     const TEST_DAY = LOCAL ? new URLSearchParams(location.search).get("day") : null;
+    // Testing only: ?theme=favela previews a look on any day. Ignored on the live site.
+    const TEST_THEME = LOCAL ? new URLSearchParams(location.search).get("theme") : null;
     const todayIso = () => (TEST_DAY && /^\d{4}-\d{2}-\d{2}$/.test(TEST_DAY) ? TEST_DAY : isoOf(new Date()));
 
     // The shootout for a date, or null if there isn't one.
@@ -979,6 +1033,7 @@
 
     // Which scene to show right now.
     function stageNow(now) {
+      if (theme === "favela") return "favela";
       if (theme !== "azteca") return "classic";
       if (scene.transition) return now - scene.transition.t0 < TRANS.SWITCH ? "park" : "azteca";
       if (screen === "end") return "azteca";
@@ -1128,6 +1183,152 @@
       }
     }
 
+    // =====================================================================
+    //  THEME "favela": a community court in a Rio favela at dusk
+    //  (based on Ben's photo: raw red-brick houses with concrete floors,
+    //  barred windows, a wooded hill behind, a huge Brazil flag, a worn
+    //  concrete court with faded yellow stripes, low blue walls, banners
+    //  and a big colourful graffiti mural)
+    // =====================================================================
+    // [x, width, top, finish] - finish: "brick" (raw), or a painted colour
+    const FAV_BUILDINGS = [
+      [0, 46, 4, "brick"], [46, 30, 18, "brick"], [76, 40, 30, "brick"], [116, 22, 40, "#b8282c"],
+      [138, 34, 26, "#8f9499"], [172, 30, 6, "brick"], [202, 34, 0, "#e6e6e0"], [236, 34, 14, "brick"],
+      [270, 50, 22, "#b8282c"],
+    ];
+    // every storey is its own box with its own finish, like the photo: raw brick, then
+    // pink, then teal... no two storeys on top of each other share a colour
+    const FAV_PAINT = ["#d77a8a", "#3fa8a0", "#e0b23a", "#e6e3da", "#7fb3d5", "#d9772e", "#6aa25a", "#b8282c", "#9b86c2", "#f0d36b"];
+    // a fixed seed, so the houses look the same on every load and for every player
+    let favSeed = 20261116;
+    const favRand = () => { favSeed = (favSeed * 1103515245 + 12345) % 2147483648; return favSeed / 2147483648; };
+    const favInt = (a, b) => a + Math.floor(favRand() * (b - a + 1));
+    const FAV_BLOCKS = FAV_BUILDINGS.map(([x, w, top]) => {
+      const floors = []; let prev = null;
+      for (let y = 90; y > top + 3;) {
+        const h = Math.min(favInt(12, 15), y - top);
+        let c; do { c = favRand() < 0.38 ? "brick" : FAV_PAINT[favInt(0, FAV_PAINT.length - 1)]; } while (c === prev);
+        prev = c;
+        const dx = floors.length ? favInt(-2, 2) : 0, dw = floors.length ? favInt(-4, 1) : 0;
+        floors.push({ x: x + dx, w: w + dw, y: y - h, h, c, balcony: favRand() < 0.3, door: !floors.length && favRand() < 0.5 });
+        y -= h;
+      }
+      return floors;
+    });
+    const FAV_TREES = Array.from({ length: 22 }, (_, i) => ({ x: 70 + i * 6 + randInt(-2, 2), y: randInt(6, 22), r: randInt(6, 10), c: pick(["#24361f", "#2b4024", "#1f2f1b"]) }));
+    const FAV_LAUNDRY = Array.from({ length: 8 }, (_, i) => ({ x: 214 + i * 5, c: pick(["#2f6b8a", "#4fa36a", "#f4f4ee", "#2e2e2e", "#c94f4f", "#6fb0c8"]), h: randInt(4, 8) }));
+    const FAV_GRAFFITI = Array.from({ length: 70 }, () => ({ x: randInt(4, 316), y: randInt(91, 102), w: randInt(3, 9), h: randInt(2, 5), c: pick(["#f2c94c", "#e8532f", "#2fa4d9", "#5fd38d", "#d63c8c", "#ffffff", "#8a4fd8", "#f28c28"]) }));
+    const FAV_STAINS = Array.from({ length: 30 }, () => ({ x: randInt(0, 318), y: randInt(112, 178), r: randInt(1, 3) }));
+    const FAV_LOCALS = [
+      { x: 16, coat: "#c94f4f", legs: "#2b2b2b", hair: "#1a1410", skin: "#8d5524", ph: 0.2, kid: true },
+      { x: 32, coat: "#2e2e2e", legs: "#2b2b2b", hair: "#1a1410", skin: "#c68642", ph: 1.2 },
+      { x: 50, coat: "#f4f4ee", legs: "#3d5f96", hair: "#3b2a1a", skin: "#e0ac69", ph: 2.6, kid: true },
+      { x: 236, coat: "#3c3c3c", legs: "#2b2b2b", hair: "#1a1410", skin: "#8d5524", ph: 0.9 },
+      { x: 252, coat: "#f4f4ee", legs: "#2b2b2b", hair: "#1a1410", skin: "#c68642", ph: 3.0, kid: true },
+    ];
+
+    // raw brick wall with grey concrete floor slabs and columns
+    function favBrick(x, y, w, h) {
+      R(x, y, w, h, "#9c5236");
+      for (let yy = y + 1; yy < y + h; yy += 3) {
+        R(x, yy, w, 1, "#84452d");
+        for (let xx = x + ((yy / 3) % 2 ? 2 : 5); xx < x + w; xx += 6) R(xx, yy - 1, 1, 2, "#84452d");
+      }
+    }
+
+    function favWindow(x, y, barred) {
+      R(x - 1, y - 1, 8, 7, "#d6d4cc");
+      R(x, y, 6, 5, "#2b2f36");
+      if (barred) { for (let i = 1; i < 6; i += 2) R(x + i, y, 1, 5, "#8a8f94"); R(x, y + 2, 6, 1, "#8a8f94"); }
+      else { R(x + 3, y, 1, 5, "#d6d4cc"); }
+    }
+
+    function drawBigBrazilFlag(x, y, w, h, now) {
+      const wave = (i) => Math.round(Math.sin(now / 500 + i / 6) * 1);
+      for (let i = 0; i < w; i++) R(x + i, y + wave(i), 1, h, "#1f8a45");
+      const cx = x + w / 2, cy = y + h / 2;
+      for (let row = 0; row < h - 6; row++) {
+        const half = Math.round((w / 2 - 4) * (1 - Math.abs(row - (h - 6) / 2) / ((h - 6) / 2)));
+        R(cx - half, y + 3 + row + wave(row), half * 2, 1, "#f2d21b");
+      }
+      disc(cx, cy, Math.round(h / 4), "#1d3f8a");
+      R(cx - Math.round(h / 4), cy - 1, Math.round(h / 2), 1, "#f4f4ee");
+    }
+
+    function drawFavela(now) {
+      // overcast dusk sky
+      ["#b9bec4", "#c4c8cd", "#cdd0d3", "#d4d6d8"].forEach((c, i) => R(0, i * 6, W, 6, c));
+      // the wooded hill behind
+      for (const t of FAV_TREES) disc(t.x, t.y, t.r, t.c);
+      R(70, 22, 130, 30, "#24361f");
+      // houses: stacked storeys, each a different colour, with concrete slabs between
+      FAV_BLOCKS.forEach((floors, b) => {
+        floors.forEach((f, i) => {
+          if (f.c === "brick") favBrick(f.x, f.y, f.w, f.h);
+          else {
+            R(f.x, f.y, f.w, f.h, f.c);
+            ctx.globalAlpha = 0.18; R(f.x, f.y + f.h - 4, f.w, 2, "#000"); R(f.x + f.w - 2, f.y, 2, f.h, "#000"); ctx.globalAlpha = 1; // weathering
+          }
+          R(f.x - 1, f.y + f.h - 2, f.w + 2, 2, "#8f9499");          // concrete slab
+          let n = b + i;
+          for (let wx = f.x + 4; wx < f.x + f.w - 7; wx += 11) favWindow(wx, f.y + 3, (n++) % 3 === 0);
+          if (f.door) R(f.x + f.w - 9, f.y + f.h - 11, 5, 9, "#3a2a20");
+          if (f.balcony) { R(f.x + 2, f.y + f.h - 6, f.w - 4, 1, "#3a3a3a"); for (let bx = f.x + 2; bx < f.x + f.w - 2; bx += 3) R(bx, f.y + f.h - 6, 1, 4, "#3a3a3a"); }
+          if (i === floors.length - 1) { R(f.x - 1, f.y - 1, f.w + 2, 2, "#5f6368"); for (let rx = f.x + 3; rx < f.x + f.w - 3; rx += 9) R(rx, f.y - 4, 1, 3, "#6b6f74"); } // roof + rebar
+        });
+      });
+      // details
+      R(186, 2, 12, 6, "#1d4fb8"); R(186, 2, 12, 1, "#3f6fd8"); // water tank
+      disc(214, 6, 3, "#c9ccd0");                    // satellite dish
+      R(74, 52, 7, 5, "#e6e6e0"); R(75, 53, 5, 3, "#b8bcc0");   // air-con unit
+      R(150, 64, 6, 10, "#f2c46a");                  // a lit doorway in the dusk
+      ctx.globalAlpha = 0.25; disc(153, 69, 9, "#f2c46a"); ctx.globalAlpha = 1;
+      // washing hanging off a balcony, and overhead wires
+      R(210, 46, 44, 1, "#4a4a4a");
+      for (const c of FAV_LAUNDRY) R(c.x, 47, 4, c.h, c.c);
+      R(0, 30, 120, 1, "#3a3a3a"); R(120, 30, 60, 1, "#3a3a3a");
+      // a huge Brazil flag hanging from the building on the right
+      drawBigBrazilFlag(272, 4, 46, 30, now);
+      // fence above the court wall
+      ctx.globalAlpha = 0.4;
+      for (let x = -16; x < W; x += 4) for (let y = 74; y < 88; y++) { R(x + (y - 74), y, 1, 1, "#2a2a2a"); R(x + 16 - (y - 74), y, 1, 1, "#2a2a2a"); }
+      ctx.globalAlpha = 1;
+      R(0, 74, W, 1, "#3a3a3a");
+      // blue sponsor-style banners (no logos): a yellow ball on navy
+      for (const bx of [22, 236]) {
+        R(bx, 76, 46, 11, "#1d3f8a"); R(bx, 76, 46, 1, "#2f5bb8");
+        disc(bx + 7, 81, 3, "#f2d21b"); R(bx + 5, 80, 5, 1, "#1d3f8a");
+        R(bx + 14, 79, 26, 2, "#f4f4ee"); R(bx + 14, 83, 18, 1, "#9fb3d9");
+      }
+      // low blue court wall covered in a colourful graffiti mural
+      R(0, 88, W, 16, "#1d4fa0");
+      R(0, 88, W, 1, "#163d7c");
+      for (const g of FAV_GRAFFITI) R(g.x, g.y, g.w, g.h, g.c);
+      R(0, 103, W, 1, "#163d7c");
+      // dusk light over everything
+      ctx.globalAlpha = 0.12; R(0, 0, W, 104, "#2a1f3a"); ctx.globalAlpha = 1;
+    }
+
+    // worn concrete court with faded yellow stripes, then the kids by the wall
+    function drawFavelaCourt(now) {
+      R(0, 104, W, H - 104, "#6e6a62");
+      ctx.globalAlpha = 0.45;
+      for (let y = 114; y < H; y += 14) R(0, y, W, 6, "#c4a84a");          // faded yellow stripes
+      R(0, 104, 34, H - 104, "#3c4f6e"); R(286, 104, 34, H - 104, "#3c4f6e"); // faded blue edges
+      ctx.globalAlpha = 0.18;
+      for (const s of FAV_STAINS) disc(s.x, s.y, s.r, "#4e4a44");
+      ctx.globalAlpha = 1;
+      const line = "#e9e9e2";
+      R(0, 110, W, 1, line);
+      R(80, 110, 1, 13, line); R(240, 110, 1, 13, line); R(80, 123, 161, 1, line);
+      R(34, 110, 1, 52, line); R(286, 110, 1, 52, line); R(34, 162, 253, 1, line);
+      for (let a = Math.PI; a < Math.PI * 2; a += 0.02) R(160 + Math.cos(a) * 46, 200 + Math.sin(a) * 30, 1, 1, line); // centre circle
+      R(159, 149, 3, 2, line);
+      const cheer = now < scene.crowdUntil;
+      for (const p of FAV_LOCALS) drawParent(p, now, cheer);
+    }
+
+
     function netShift(x, y) {
       const b = scene.bulge;
       if (!b || b.amp < 0.05) return [x, y];
@@ -1158,7 +1359,9 @@
     const KEEPER_MEX = { skin: "#c68642", hair: "#1a1410", shirt: "#1f8a45", shirt2: "#145a2a", glove: "#f4f6fa", shorts: "#111111" };
     // a kid keeper for the park
     const KEEPER_KID = { skin: "#f1c9a0", hair: "#6b4428", shirt: "#f28c28", shirt2: "#d0711a", glove: "#f4f6fa", shorts: "#1b2838" };
-    const keeperKit = () => (drawStage === "park" ? KEEPER_KID : drawStage === "azteca" ? KEEPER_MEX : KEEPER);
+    // a kid keeper on the favela court
+    const KEEPER_FAVELA = { skin: "#8d5524", hair: "#1a1410", shirt: "#2e2e2e", shirt2: "#1a1a1a", glove: "#f7d117", shorts: "#1d4fb8" };
+    const keeperKit = () => (drawStage === "park" ? KEEPER_KID : drawStage === "azteca" ? KEEPER_MEX : drawStage === "favela" ? KEEPER_FAVELA : KEEPER);
 
     function drawKeeperStanding(x, fy) {
       const k = keeperKit();
@@ -1193,7 +1396,9 @@
     const KICKER_KANE = { skin: "#e8b98a", hair: "#8a6a45", hairHi: "#ad8a5e", shirt: "#f4f6fa", shirtD: "#d3d9e2", shorts: "#1b2b55", socks: "#f4f6fa", navy: "#1b2b55", trim: "#cf142b", name: "KANE", number: "9" };
     // Young Kane at Ridgeway Rovers: blue-and-white halves, buzz cut (no sponsor)
     const KICKER_KID = { skin: "#efc39a", hair: "#c9a06a", hairHi: "#dcb889", shirt: "#f4f6fa", shirtD: "#d3d9e2", halves: "#1f4fa8", shorts: "#f4f6fa", socks: "#f4f6fa", navy: "#1b2b55" };
-    const kickerKit = () => (drawStage === "park" ? KICKER_KID : drawStage === "azteca" ? KICKER_KANE : KICKER);
+    // Favela theme: a kid in a Brazil-style shirt (no crest), green 10 on the back
+    const KICKER_BRAZIL = { skin: "#c68642", hair: "#1a1410", hairHi: "#3b2a1a", shirt: "#f7d117", shirtD: "#e0b80c", shorts: "#1d4fb8", socks: "#f4f6fa", navy: "#1f8a45", trim: "#1f8a45" };
+    const kickerKit = () => (drawStage === "park" ? KICKER_KID : drawStage === "azteca" ? KICKER_KANE : drawStage === "favela" ? KICKER_BRAZIL : KICKER);
 
     // Tiny pixel font for names on shirts: letters 4 rows high, digits 5; N is 4 wide.
     const SHIRT_FONT = {
@@ -1351,6 +1556,7 @@
         scene.engScored = true;
         const colors = drawStage === "azteca" ? ["#ffffff", "#cf142b", "#ffffff", "#1b2b55", "#f2c94c"]
           : drawStage === "park" ? ["#1f4fa8", "#ffffff", "#1f4fa8", "#f2c94c"]
+          : drawStage === "favela" ? ["#f7d117", "#1f8a45", "#1d4fb8", "#ffffff"]
           : ["#f2c94c", "#8cc4f0", "#ffffff", "#5fd38d", "#ff6b6b"];
         for (let i = 0; i < 90; i++) {
           scene.confetti.push({ x: rand(20, 300), y: rand(-30, 0), vx: rand(-0.03, 0.03), vy: rand(0.02, 0.07), c: pick(colors), life: rand(1800, 2800) });
@@ -1459,6 +1665,8 @@
       drawStage = stageNow(now);
       if (drawStage === "azteca") {
         drawAzteca(now);
+      } else if (drawStage === "favela") {
+        drawFavela(now);
       } else if (drawStage === "park") {
         drawPark(now);
       } else {
@@ -1466,7 +1674,8 @@
         drawStand(now);
         drawBoards(now);
       }
-      drawPitch();
+      if (drawStage === "favela") drawFavelaCourt(now);
+      else drawPitch();
       if (drawStage === "park") drawParkWear(now);
       drawGoal();
 
@@ -1621,8 +1830,9 @@
     // ---- screens
     function boot() {
       bootedOn = todayIso();
-      theme = THEME_DAYS[bootedOn] || "classic";
+      theme = TEST_THEME || THEME_DAYS[bootedOn] || "classic";
       document.body.classList.toggle("theme-azteca", theme === "azteca");
+      document.body.classList.toggle("theme-favela", theme === "favela");
       today = shootoutFor(bootedOn);
       resetScene();
       if (!today) { showNoShootout(); return; }
